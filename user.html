@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - mrc languages</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+         /* Styles for message box */
+        .message-box {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            color: white;
+            z-index: 1000;
+            display: none; /* Hidden by default */
+            max-width: 300px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .message-box.success {
+            background-color: #28a745; /* Green */
+        }
+        .message-box.error { /* Added error class for consistency */
+            background-color: #dc3545; /* Red */
+        }
+        .language-enroll-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .language-enroll-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col min-h-screen">
+
+    <header class="bg-white shadow-md">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="text-3xl font-bold text-indigo-600">mrc languages</a>
+            <div class="space-x-4 text-lg">
+                <a href="index.html" class="text-gray-600 hover:text-indigo-600">Home</a>
+                <span id="user-greeting-nav" class="text-gray-700 font-medium"></span>
+                <button id="logout-button-user" class="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition duration-300">Logout</button>
+            </div>
+        </nav>
+    </header>
+
+    <div id="messageBoxUser" class="message-box"></div>
+
+    <main class="flex-grow container mx-auto px-6 py-12">
+        <div class="bg-white p-8 rounded-xl shadow-xl">
+            <h1 id="welcome-message" class="text-4xl font-bold text-indigo-700 mb-6">Welcome, User!</h1>
+            <p class="text-lg text-gray-700 mb-4">This is your personal dashboard. Here you can manage your courses, track your progress, and access learning materials.</p>
+            
+            <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-indigo-50 p-6 rounded-lg shadow">
+                    <h2 class="text-2xl font-semibold text-indigo-600 mb-3">My Courses</h2>
+                    <div id="my-courses-list">
+                        <p class="text-gray-600">You are not currently enrolled in any courses.</p>
+                    </div>
+                </div>
+                <div class="bg-green-50 p-6 rounded-lg shadow">
+                    <h2 class="text-2xl font-semibold text-green-600 mb-3">My Progress</h2>
+                    <div id="my-progress-list">
+                        <p class="text-gray-600">Start a course to see your progress here.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-10">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Account Details</h2>
+                <div class="bg-gray-50 p-6 rounded-lg shadow">
+                    <p class="text-gray-700"><strong class="font-medium">Name:</strong> <span id="user-detail-name">N/A</span></p>
+                    <p class="text-gray-700 mt-2"><strong class="font-medium">Email:</strong> <span id="user-detail-email">N/A</span></p>
+                </div>
+            </div>
+
+            <div class="mt-10">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Available Languages</h2>
+                <div id="available-languages-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <p class="text-gray-500 col-span-full">Loading available languages...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-8 mt-auto">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; <span id="currentYearUser"></span> mrc languages. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const welcomeMessage = document.getElementById('welcome-message');
+            const userGreetingNav = document.getElementById('user-greeting-nav');
+            const logoutButton = document.getElementById('logout-button-user');
+            const messageBoxUser = document.getElementById('messageBoxUser');
+            const userDetailName = document.getElementById('user-detail-name');
+            const userDetailEmail = document.getElementById('user-detail-email');
+            const myCoursesListDiv = document.getElementById('my-courses-list');
+            const myProgressListDiv = document.getElementById('my-progress-list');
+            const availableLanguagesListDiv = document.getElementById('available-languages-list');
+
+            function showUserMessage(message, type = "success", duration = 3000) {
+                if (!messageBoxUser) return;
+                messageBoxUser.textContent = message;
+                messageBoxUser.className = `message-box ${type}`;
+                messageBoxUser.style.display = 'block';
+                setTimeout(() => {
+                    messageBoxUser.style.display = 'none';
+                }, duration);
+            }
+
+            const loggedInUserEmail = sessionStorage.getItem('loggedInUserEmail');
+            const loggedInUserFullName = sessionStorage.getItem('loggedInUserFullName');
+
+            if (loggedInUserEmail && loggedInUserFullName) {
+                if (welcomeMessage) welcomeMessage.textContent = `Welcome, ${loggedInUserFullName}!`;
+                if (userGreetingNav) userGreetingNav.textContent = `Hi, ${loggedInUserFullName.split(' ')[0]}`;
+                if (userDetailName) userDetailName.textContent = loggedInUserFullName;
+                if (userDetailEmail) userDetailEmail.textContent = loggedInUserEmail;
+                renderAvailableLanguages();
+                renderUserCoursesAndProgress();
+            } else {
+                if (welcomeMessage) welcomeMessage.textContent = 'Access Denied';
+                showUserMessage("You are not logged in. Redirecting...", "error");
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+            }
+
+            if (logoutButton) {
+                logoutButton.addEventListener('click', () => {
+                    sessionStorage.removeItem('loggedInUserEmail');
+                    sessionStorage.removeItem('loggedInUserFullName');
+                    showUserMessage("You have been logged out.", "success");
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1500);
+                });
+            }
+
+            function renderAvailableLanguages() {
+                if (!availableLanguagesListDiv) return;
+                const adminAddedLanguages = JSON.parse(localStorage.getItem('mrcAdminCourses')) || [];
+                availableLanguagesListDiv.innerHTML = ''; // Clear existing
+                
+                if (adminAddedLanguages.length === 0) {
+                    availableLanguagesListDiv.innerHTML = '<p class="text-gray-500 col-span-full">No languages are available at the moment. Please check back later.</p>';
+                    return;
+                }
+
+                const enrolledCourses = getUserEnrolledCourses();
+
+                adminAddedLanguages.forEach(lang => {
+                    const isEnrolled = enrolledCourses.some(c => c.name === lang.name);
+                    const card = document.createElement('div');
+                    // Use admin-defined colors or fallbacks
+                    const bgColor = lang.bgColor || 'bg-gray-100';
+                    const iconColor = lang.iconColor || 'text-gray-700';
+
+                    card.className = `language-enroll-card p-6 rounded-lg shadow-md cursor-pointer ${bgColor}`;
+                    
+                    let buttonHTML;
+                    if (isEnrolled) {
+                        buttonHTML = `<button class="mt-3 w-full bg-gray-400 text-white px-4 py-2 rounded-md cursor-not-allowed" disabled>Enrolled</button>`;
+                    } else {
+                        buttonHTML = `<button class="enroll-btn mt-3 w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200">Enroll</button>`;
+                    }
+
+                    card.innerHTML = `
+                        <div class="flex items-center justify-center mb-3">
+                            <span class="text-4xl font-bold ${iconColor}">${lang.code ? lang.code.toUpperCase() : lang.name.substring(0,2).toUpperCase()}</span>
+                        </div>
+                        <h3 class="text-xl font-semibold text-center ${iconColor}">${lang.name}</h3>
+                        ${buttonHTML}
+                    `;
+                    if (!isEnrolled) {
+                        card.querySelector('.enroll-btn').addEventListener('click', () => enrollInCourse(lang));
+                    }
+                    availableLanguagesListDiv.appendChild(card);
+                });
+            }
+
+            function getUserEnrolledCourses() {
+                if (!loggedInUserEmail) return [];
+                return JSON.parse(localStorage.getItem(`userCourses_${loggedInUserEmail}`)) || [];
+            }
+
+            function saveUserEnrolledCourses(courses) {
+                if (!loggedInUserEmail) return;
+                localStorage.setItem(`userCourses_${loggedInUserEmail}`, JSON.stringify(courses));
+            }
+
+            function enrollInCourse(language) {
+                let enrolledCourses = getUserEnrolledCourses();
+                if (!enrolledCourses.some(course => course.name === language.name)) {
+                     // Get total lessons for progress calculation later
+                    let totalLessons = 0;
+                    if (language.units && language.units.length > 0) {
+                        language.units.forEach(unit => {
+                            if (unit.lessons && unit.lessons.length > 0) {
+                                totalLessons += unit.lessons.length;
+                            }
+                        });
+                    }
+
+                    enrolledCourses.push({ 
+                        name: language.name, 
+                        progress: 0, 
+                        code: language.code,
+                        totalLessons: totalLessons, // Store total lessons
+                        completedLessons: [] // Initialize as an empty array or object for tracking
+                    });
+                    saveUserEnrolledCourses(enrolledCourses);
+                    showUserMessage(`Successfully enrolled in ${language.name}!`, "success");
+                    renderUserCoursesAndProgress();
+                    renderAvailableLanguages(); 
+                } else {
+                    showUserMessage(`You are already enrolled in ${language.name}.`, "error");
+                }
+            }
+
+            function renderUserCoursesAndProgress() {
+                if (!myCoursesListDiv || !myProgressListDiv) return;
+                const enrolledCourses = getUserEnrolledCourses();
+
+                if (enrolledCourses.length === 0) {
+                    myCoursesListDiv.innerHTML = '<p class="text-gray-600">You are not currently enrolled in any courses.</p>';
+                    myProgressListDiv.innerHTML = '<p class="text-gray-600">Start a course to see your progress here.</p>';
+                    return;
+                }
+
+                myCoursesListDiv.innerHTML = '';
+                myProgressListDiv.innerHTML = '';
+
+                enrolledCourses.forEach(course => {
+                    const courseItem = document.createElement('div');
+                    courseItem.className = 'mb-3 p-3 bg-white rounded-md shadow hover:shadow-lg transition-shadow duration-200';
+                    courseItem.innerHTML = `
+                        <a href="course-content.html?lang=${encodeURIComponent(course.name)}&code=${course.code || ''}" class="block">
+                            <h4 class="text-lg font-medium text-indigo-700">${course.name}</h4>
+                            <p class="text-sm text-gray-500">Click to view course</p>
+                        </a>
+                    `;
+                    myCoursesListDiv.appendChild(courseItem);
+
+                    const progressItem = document.createElement('div');
+                    progressItem.className = 'mb-3 p-3 bg-white rounded-md shadow';
+                    progressItem.innerHTML = `
+                        <h4 class="text-lg font-medium text-green-700">${course.name}</h4>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 mt-1">
+                            <div class="bg-green-500 h-2.5 rounded-full" style="width: ${course.progress || 0}%"></div>
+                        </div>
+                        <p class="text-sm text-right text-gray-500 mt-1">${course.progress || 0}% complete</p>
+                    `;
+                    myProgressListDiv.appendChild(progressItem);
+                });
+            }
+        });
+        
+        document.getElementById('currentYearUser').textContent = new Date().getFullYear();
+    </script>
+
+</body>
+</html>
