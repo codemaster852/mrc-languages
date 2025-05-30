@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mrc languages - Learn Languages Online</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .hero-bg {
+            background-image: url('https://placehold.co/1920x1080/a3bffa/ffffff?text=Learn+Any+Language'); /* Placeholder hero image */
+            background-size: cover;
+            background-position: center;
+        }
+        .language-card, .advantage-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .language-card:hover, .advantage-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="text-3xl font-bold text-indigo-600">mrc languages</a>
+            <div class="flex items-center space-x-4 text-lg">
+                <a href="index.html#hero" class="text-gray-600 hover:text-indigo-600">Home</a>
+                <a href="index.html#languages" class="text-gray-600 hover:text-indigo-600">Languages</a>
+                <a href="index.html#advantages" class="text-gray-600 hover:text-indigo-600">Advantages</a>
+                <a href="login.html" class="text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition duration-300">Login</a>
+                <a href="signup.html" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition duration-300">Sign Up</a>
+            </div>
+        </nav>
+    </header>
+
+    <section id="hero" class="hero-bg text-white">
+        <div class="min-h-[70vh] md:min-h-[80vh] flex items-center justify-center bg-black bg-opacity-50">
+            <div class="text-center p-10">
+                <h1 class="text-5xl md:text-7xl font-bold mb-6">Unlock Your World with New Languages</h1>
+                <p class="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">Join mrc languages and embark on an exciting journey to fluency. Interactive lessons, expert tutors, and a vibrant community await you!</p>
+                <a href="#languages" class="bg-yellow-400 text-gray-900 px-10 py-4 rounded-lg text-xl font-semibold hover:bg-yellow-500 transition duration-300">Start Learning Today</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="languages" class="py-16 md:py-24 bg-white">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-bold text-center mb-6 text-indigo-600">Languages We Offer</h2>
+            <p class="text-xl text-center text-gray-600 mb-12 max-w-2xl mx-auto">
+                Choose from a wide variety of languages and start your learning adventure. More languages are added regularly!
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="language-card bg-gray-100 p-8 rounded-xl shadow-lg">
+                    <img src="https://placehold.co/80x80/7c3aed/ffffff?text=AR" alt="Arabic Language Icon" class="h-20 w-20 mb-6 mx-auto rounded-full shadow-md" onerror="this.onerror=null;this.src='https://placehold.co/80x80/cccccc/ffffff?text=Icon';">
+                    <h3 class="text-2xl font-semibold text-center mb-3 text-indigo-700">Arabic</h3>
+                    <p class="text-gray-700 text-center leading-relaxed">Dive into the rich culture and history of the Arab world by learning its beautiful and intricate language.</p>
+                </div>
+                <div class="language-card bg-gray-100 p-8 rounded-xl shadow-lg">
+                    <img src="https://placehold.co/80x80/db2777/ffffff?text=EN" alt="English Language Icon" class="h-20 w-20 mb-6 mx-auto rounded-full shadow-md" onerror="this.onerror=null;this.src='https://placehold.co/80x80/cccccc/ffffff?text=Icon';">
+                    <h3 class="text-2xl font-semibold text-center mb-3 text-pink-600">English</h3>
+                    <p class="text-gray-700 text-center leading-relaxed">Master the global lingua franca for business, travel, and entertainment. Open doors to new opportunities.</p>
+                </div>
+                <div class="language-card bg-gray-100 p-8 rounded-xl shadow-lg">
+                    <img src="https://placehold.co/80x80/16a34a/ffffff?text=FR" alt="French Language Icon" class="h-20 w-20 mb-6 mx-auto rounded-full shadow-md" onerror="this.onerror=null;this.src='https://placehold.co/80x80/cccccc/ffffff?text=Icon';">
+                    <h3 class="text-2xl font-semibold text-center mb-3 text-green-600">French</h3>
+                    <p class="text-gray-700 text-center leading-relaxed">Explore the language of love, art, and diplomacy. Immerse yourself in French culture and sophistication.</p>
+                </div>
+                <div class="language-card bg-gray-100 p-8 rounded-xl shadow-lg">
+                    <img src="https://placehold.co/80x80/f59e0b/ffffff?text=ES" alt="Spanish Language Icon" class="h-20 w-20 mb-6 mx-auto rounded-full shadow-md" onerror="this.onerror=null;this.src='https://placehold.co/80x80/cccccc/ffffff?text=Icon';">
+                    <h3 class="text-2xl font-semibold text-center mb-3 text-amber-600">Spanish</h3>
+                    <p class="text-gray-700 text-center leading-relaxed">Connect with hundreds of millions of speakers worldwide. Discover vibrant cultures and traditions.</p>
+                </div>
+                <div class="language-card bg-gray-100 p-8 rounded-xl shadow-lg">
+                    <img src="https://placehold.co/80x80/ef4444/ffffff?text=DE" alt="German Language Icon" class="h-20 w-20 mb-6 mx-auto rounded-full shadow-md" onerror="this.onerror=null;this.src='https://placehold.co/80x80/cccccc/ffffff?text=Icon';">
+                    <h3 class="text-2xl font-semibold text-center mb-3 text-red-600">German</h3>
+                    <p class="text-gray-700 text-center leading-relaxed">Challenge yourself with the language of innovation, engineering, and influential thinkers.</p>
+                </div>
+                <div class="language-card bg-indigo-600 text-white p-8 rounded-xl shadow-lg flex flex-col items-center justify-center">
+                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16 mb-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    <h3 class="text-2xl font-semibold text-center mb-3">More Languages</h3>
+                    <p class="text-center leading-relaxed">We're constantly working to bring you more languages. Stay tuned for exciting updates!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="advantages" class="py-16 md:py-24 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-bold text-center mb-6 text-indigo-600">Why Learn with mrc languages?</h2>
+            <p class="text-xl text-center text-gray-600 mb-12 max-w-2xl mx-auto">
+                Experience a modern and effective way to learn languages, designed for your success and enjoyment.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="advantage-card bg-white p-8 rounded-xl shadow-lg text-center">
+                    <div class="p-4 bg-indigo-100 rounded-full inline-block mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-indigo-700">Learn Anytime, Anywhere</h3>
+                    <p class="text-gray-700 leading-relaxed">Access our platform on any device and learn at your own pace, fitting lessons into your busy schedule.</p>
+                </div>
+                <div class="advantage-card bg-white p-8 rounded-xl shadow-lg text-center">
+                    <div class="p-4 bg-pink-100 rounded-full inline-block mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-pink-700">Expert Tutors</h3>
+                    <p class="text-gray-700 leading-relaxed">Learn from certified, native-speaking instructors who are passionate about teaching and your progress.</p>
+                </div>
+                <div class="advantage-card bg-white p-8 rounded-xl shadow-lg text-center">
+                    <div class="p-4 bg-green-100 rounded-full inline-block mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-green-700">Interactive Lessons</h3>
+                    <p class="text-gray-700 leading-relaxed">Engage with dynamic content, including videos, quizzes, and real-world conversation practice.</p>
+                </div>
+                <div class="advantage-card bg-white p-8 rounded-xl shadow-lg text-center">
+                    <div class="p-4 bg-yellow-100 rounded-full inline-block mb-6">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 01.778-.332 48.154 48.154 0 005.69-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-yellow-700">Supportive Community</h3>
+                    <p class="text-gray-700 leading-relaxed">Connect with fellow learners, practice together, and share your journey in our friendly online community.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-6 text-center">
+            <a href="index.html" class="text-2xl font-bold text-indigo-400 mb-4 inline-block">mrc languages</a>
+            <p class="mb-6">Your journey to language mastery starts here.</p>
+            <div class="space-x-6 mb-6">
+                <a href="#" class="hover:text-indigo-400">Privacy Policy</a>
+                <a href="#" class="hover:text-indigo-400">Terms of Service</a>
+                <a href="#" class="hover:text-indigo-400">Contact Us</a>
+            </div>
+            <p>&copy; <span id="currentYear"></span> mrc languages. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // Smooth scroll for navigation links pointing to sections on the same page
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                // Check if it's an internal page link (starts with #)
+                if (href.startsWith('#') && href.length > 1) {
+                    e.preventDefault();
+                    const targetElement = document.querySelector(href);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    }
+                }
+                // For links like index.html#section, let the browser handle default behavior
+                // or add specific logic if needed.
+            });
+        });
+
+        // Ensure navigation links like index.html#section work correctly
+        // This part is more about ensuring the smooth scroll doesn't interfere
+        // with direct navigation to sections from other pages if you were to implement that.
+        // For now, the above script handles same-page anchor links.
+        // If navigating from login.html back to index.html#languages, the browser default will handle it.
+    </script>
+
+</body>
+</html>
