@@ -24,20 +24,7 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
-        .modal { 
-            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; 
-            overflow: auto; background-color: rgba(0,0,0,0.6);
-            align-items: center; justify-content: center; 
-        }
-        .modal-content { 
-            background-color: #fefefe; margin: auto; padding: 25px; border: 1px solid #888; 
-            width: 90%; max-width: 450px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-        .close-button { 
-            color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;
-            line-height: 1;
-        }
-        .close-button:hover, .close-button:focus { color: black; text-decoration: none; }
+        /* Modal styles are removed as we are redirecting now for payment */
     </style>
 </head>
 <body class="bg-gray-100 flex flex-col min-h-screen">
@@ -85,31 +72,6 @@
         </div>
     </main>
 
-    <div id="paymentConfirmationModal" class="modal">
-        <div class="modal-content">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-semibold text-gray-800">Confirm Enrollment</h3>
-                <span class="close-button" onclick="closeModal('paymentConfirmationModal')">&times;</span>
-            </div>
-            <p class="mb-2">You are about to enroll in: <strong id="confirmCourseName"></strong></p>
-            <p class="mb-1">Price: <strong id="confirmCoursePrice" class="text-green-600"></strong> MRC</p>
-            <p class="mb-4 text-sm text-gray-600">
-                Payment will be made using your saved MRC Bank card: 
-                <strong id="confirmCardLastFour" class="font-mono">•••• XXXX</strong>.
-            </p>
-            <p id="noSavedCardMessage" class="text-red-600 mb-4 hidden">
-                No MRC Bank card is saved. Please <a href="mrcbank.html" class="font-semibold text-indigo-600 hover:underline">set up your payment card</a> first.
-            </p>
-            
-            <form id="confirmPaymentForm" class="space-y-4">
-                <input type="hidden" id="confirmCourseData" /> 
-                <button type="submit" id="confirmPayButton" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 px-4 rounded-lg transition duration-150">Confirm & Pay</button>
-                <button type="button" onclick="closeModal('paymentConfirmationModal')" class="w-full bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2.5 px-4 rounded-lg transition duration-150">Cancel</button>
-            </form>
-        </div>
-    </div>
-
-
     <footer class="bg-gray-800 text-white py-8 mt-auto">
         <div class="container mx-auto px-6 text-center">
             <p>&copy; <span id="currentYearUser"></span> MRC Languages. All rights reserved.</p>
@@ -117,16 +79,11 @@
     </footer>
 
     <script>
-        // Globally scoped modal functions
-        function openModal(modalId) { 
-            const modal = document.getElementById(modalId);
-            if (modal) modal.style.display = 'flex';
-        }
-        function closeModal(modalId) { 
-            const modal = document.getElementById(modalId);
-            if (modal) modal.style.display = 'none'; 
-        }
-        const LANG_PAYMENT_CARD_STORAGE_KEY = 'mrcLang_activePaymentCard'; // Same key as in mrcbank.html
+        // Globally scoped modal functions (if any modals were still used, but payment modal is removed)
+        // function openModal(modalId) { /* ... */ }
+        // function closeModal(modalId) { /* ... */ }
+        
+        const LANG_PAYMENT_CARD_STORAGE_KEY = 'mrcLang_activePaymentCard'; 
 
         document.addEventListener('DOMContentLoaded', () => {
             const welcomeMessageEl = document.getElementById('welcomeMessage');
@@ -136,16 +93,6 @@
             const myCoursesListDivEl = document.getElementById('my-courses-list');
             const myProgressListDivEl = document.getElementById('my-progress-list');
             const availableLanguagesListDivEl = document.getElementById('available-languages-list');
-
-            const paymentConfirmationModalEl = document.getElementById('paymentConfirmationModal'); 
-            const confirmPaymentFormEl = document.getElementById('confirmPaymentForm');
-            const confirmCourseNameEl = document.getElementById('confirmCourseName');
-            const confirmCoursePriceEl = document.getElementById('confirmCoursePrice');
-            const confirmCardLastFourEl = document.getElementById('confirmCardLastFour');
-            const noSavedCardMessageEl = document.getElementById('noSavedCardMessage');
-            const confirmPayButtonEl = document.getElementById('confirmPayButton');
-            const confirmCourseDataInputEl = document.getElementById('confirmCourseData');
-
 
             function showUserMessage(message, type = "success", duration = 4000) {
                 if (!messageBoxUserEl) return;
@@ -157,24 +104,47 @@
                 }, duration);
             }
             
-            window.onclick = function(event) { 
-                if (event.target.classList.contains('modal')) {
-                     if (event.target.id === 'paymentConfirmationModal') { // Updated modal ID
-                        closeModal('paymentConfirmationModal');
-                     }
-                }
-            }
-
             const mrcLangLoggedInUserEmail = sessionStorage.getItem('loggedInUserEmail'); 
             const mrcLangLoggedInUserFullName = sessionStorage.getItem('loggedInUserFullName');
 
             if (mrcLangLoggedInUserEmail && mrcLangLoggedInUserFullName) {
                 if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome, ${mrcLangLoggedInUserFullName}!`;
                 if (userGreetingNavEl) userGreetingNavEl.textContent = `Hi, ${mrcLangLoggedInUserFullName.split(' ')[0]}`;
+                
+                // Check for payment status from mrcbank.html redirect
+                const urlParams = new URLSearchParams(window.location.search);
+                const paymentStatus = urlParams.get('payment_status');
+                const courseDataString = urlParams.get('course_data');
+
+                if (paymentStatus === 'success' && courseDataString) {
+                    try {
+                        const paidCourse = JSON.parse(decodeURIComponent(courseDataString));
+                        showUserMessage(`Payment successful for ${paidCourse.name}! Enrolling you now...`, "success");
+                        enrollInLangCourse(paidCourse, true); // Pass a flag to indicate it's post-payment
+
+                        // Clean up URL parameters
+                        const newUrl = window.location.pathname; // Get path without query string
+                        window.history.replaceState({}, document.title, newUrl);
+
+                    } catch (e) {
+                        console.error("Error parsing course data from URL:", e);
+                        showUserMessage("Enrollment confirmation error. Please check 'My Courses'.", "error");
+                    }
+                } else if (paymentStatus === 'cancelled') {
+                     showUserMessage("Payment was cancelled.", "error");
+                     const newUrl = window.location.pathname;
+                     window.history.replaceState({}, document.title, newUrl);
+                } else if (paymentStatus === 'failed') {
+                    const failReason = urlParams.get('reason') || "Payment failed. Please try again or check your MRC Bank details.";
+                    showUserMessage(decodeURIComponent(failReason), "error");
+                    const newUrl = window.location.pathname;
+                    window.history.replaceState({}, document.title, newUrl);
+                }
+
+
                 renderAvailableCourses();
                 renderUserEnrolledCoursesAndProgress();
             } else {
-                // ... (redirect logic same as before)
                  if (welcomeMessageEl) welcomeMessageEl.textContent = 'Access Denied';
                 showUserMessage("You are not logged in to MRC Languages. Redirecting...", "error");
                 setTimeout(() => {
@@ -182,7 +152,7 @@
                 }, 2000);
             }
 
-            if (logoutButtonUserEl) { /* ... (logout logic same as before) ... */
+            if (logoutButtonUserEl) {
                  logoutButtonUserEl.addEventListener('click', () => {
                     sessionStorage.removeItem('loggedInUserEmail');
                     sessionStorage.removeItem('loggedInUserFullName');
@@ -193,7 +163,7 @@
                 });
             }
 
-            function renderAvailableCourses() { /* ... (same as before) ... */
+            function renderAvailableCourses() {
                 if (!availableLanguagesListDivEl) return;
                 const adminAddedCourses = JSON.parse(localStorage.getItem('mrcLang_adminCourses')) || [];
                 availableLanguagesListDivEl.innerHTML = ''; 
@@ -213,7 +183,8 @@
                     if (isEnrolled) {
                         buttonHTML = `<button class="mt-3 w-full bg-gray-400 text-white px-4 py-2 rounded-md cursor-not-allowed" disabled>Enrolled</button>`;
                     } else {
-                        buttonHTML = `<button class="enroll-btn mt-3 w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200" data-course-name='${course.name}'>Enroll</button>`;
+                        // Pass the whole course object as a string to handleEnrollment
+                        buttonHTML = `<button class="enroll-btn mt-3 w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200">Enroll</button>`;
                     }
                     card.innerHTML = `
                         <div class="flex items-center justify-center mb-3">
@@ -229,91 +200,26 @@
                 });
             }
 
-            function getUserEnrolledLangCourses() { /* ... (same as before) ... */
+            function getUserEnrolledLangCourses() {
                  if (!mrcLangLoggedInUserEmail) return [];
                 return JSON.parse(localStorage.getItem(`mrcLang_userCourses_${mrcLangLoggedInUserEmail}`)) || [];
             }
-            function saveUserEnrolledLangCourses(courses) { /* ... (same as before) ... */
+            function saveUserEnrolledLangCourses(courses) {
                 if (!mrcLangLoggedInUserEmail) return;
                 localStorage.setItem(`mrcLang_userCourses_${mrcLangLoggedInUserEmail}`, JSON.stringify(courses));
             }
 
             function handleEnrollment(courseToEnroll) {
                 if (courseToEnroll.isPaid) {
-                    const savedCard = JSON.parse(localStorage.getItem(LANG_PAYMENT_CARD_STORAGE_KEY));
-                    confirmCourseNameEl.textContent = courseToEnroll.name;
-                    confirmCoursePriceEl.textContent = parseFloat(courseToEnroll.price).toFixed(2);
-                    confirmCourseDataInputEl.value = JSON.stringify(courseToEnroll);
-
-                    if (savedCard && savedCard.cardNumber) {
-                        confirmCardLastFourEl.textContent = `•••• ${savedCard.cardNumber.slice(-4)}`;
-                        noSavedCardMessageEl.classList.add('hidden');
-                        confirmPayButtonEl.classList.remove('hidden');
-                    } else {
-                        confirmCardLastFourEl.textContent = 'N/A';
-                        noSavedCardMessageEl.classList.remove('hidden');
-                        confirmPayButtonEl.classList.add('hidden'); // Hide pay button if no card
-                    }
-                    openModal('paymentConfirmationModal');
+                    // Redirect to mrcbank.html with course details
+                    const courseDataString = encodeURIComponent(JSON.stringify(courseToEnroll));
+                    window.location.href = `mrcbank.html?course_name=${encodeURIComponent(courseToEnroll.name)}&course_price=${courseToEnroll.price}&course_data=${courseDataString}`;
                 } else {
-                    enrollInLangCourse(courseToEnroll);
+                    enrollInLangCourse(courseToEnroll, false); // Pass false for post-payment flag
                 }
             }
-
-            if (confirmPaymentFormEl) {
-                confirmPaymentFormEl.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const savedCard = JSON.parse(localStorage.getItem(LANG_PAYMENT_CARD_STORAGE_KEY));
-                    const courseToEnroll = JSON.parse(confirmCourseDataInputEl.value);
-
-                    if (!savedCard || !savedCard.cardNumber || !savedCard.cvv) {
-                        showUserMessage("No MRC Bank card saved. Please set up your payment card.", "error");
-                        closeModal('paymentConfirmationModal');
-                        // Optionally redirect to mrcbank.html or show a more prominent link
-                        noSavedCardMessageEl.classList.remove('hidden'); // Ensure message is visible
-                        confirmPayButtonEl.classList.add('hidden');
-                        return;
-                    }
-
-                    const mrcBankUsers = JSON.parse(localStorage.getItem('mrcBankUsers')) || [];
-                    const mrcBankUserIndex = mrcBankUsers.findIndex(user => 
-                        user.cardNumber === savedCard.cardNumber && user.cvv === savedCard.cvv
-                    );
-
-                    if (mrcBankUserIndex === -1) {
-                        showUserMessage("Saved MRC Bank card details are invalid or not found. Please update your card in MRC Bank Setup.", "error");
-                        closeModal('paymentConfirmationModal');
-                        return;
-                    }
-
-                    const bankUser = mrcBankUsers[mrcBankUserIndex];
-                    const coursePrice = parseFloat(courseToEnroll.price);
-
-                    if (bankUser.balance < coursePrice) {
-                        showUserMessage(`Insufficient balance in your saved MRC Bank account. Current balance: ${bankUser.balance.toFixed(2)} MRC.`, "error");
-                        closeModal('paymentConfirmationModal');
-                        return;
-                    }
-
-                    // Process payment
-                    bankUser.balance -= coursePrice;
-                    if (!bankUser.transactions) bankUser.transactions = [];
-                    bankUser.transactions.push({
-                        id: crypto.randomUUID(),
-                        date: new Date().toISOString().split('T')[0],
-                        description: `Payment for MRC Language course: ${courseToEnroll.name}`,
-                        amount: coursePrice,
-                        type: "payment"
-                    });
-                    localStorage.setItem('mrcBankUsers', JSON.stringify(mrcBankUsers));
-
-                    showUserMessage(`Payment of ${coursePrice.toFixed(2)} MRC successful!`, "success");
-                    enrollInLangCourse(courseToEnroll);
-                    closeModal('paymentConfirmationModal');
-                });
-            }
-
-            function enrollInLangCourse(course) { /* ... (same as before) ... */
+            
+            function enrollInLangCourse(course, isPostPayment = false) {
                 let enrolledCourses = getUserEnrolledLangCourses();
                 if (!enrolledCourses.some(c => c.name === course.name)) {
                     let totalLessons = 0;
@@ -327,15 +233,19 @@
                         totalLessons: totalLessons, completedLessons: [] 
                     });
                     saveUserEnrolledLangCourses(enrolledCourses);
-                    showUserMessage(`Successfully enrolled in ${course.name}!`, "success");
+                    if (!isPostPayment) { // Don't show double message if coming from payment success
+                        showUserMessage(`Successfully enrolled in ${course.name}!`, "success");
+                    }
                     renderUserEnrolledCoursesAndProgress();
                     renderAvailableCourses(); 
                 } else {
-                    showUserMessage(`You are already enrolled in ${course.name}.`, "error");
+                    if (!isPostPayment) { // Avoid showing this if already handled by payment success
+                        showUserMessage(`You are already enrolled in ${course.name}.`, "error");
+                    }
                 }
             }
 
-            function renderUserEnrolledCoursesAndProgress() { /* ... (same as before) ... */
+            function renderUserEnrolledCoursesAndProgress() {
                 if (!myCoursesListDivEl || !myProgressListDivEl) return;
                 const enrolledCourses = getUserEnrolledLangCourses();
                 if (enrolledCourses.length === 0) {
