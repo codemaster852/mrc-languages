@@ -117,6 +117,16 @@
     </footer>
 
     <script>
+        // Globally scoped modal functions
+        function openModal(modalId) { 
+            const modal = document.getElementById(modalId);
+            if (modal) modal.style.display = 'flex';
+        }
+        function closeModal(modalId) { 
+            const modal = document.getElementById(modalId);
+            if (modal) modal.style.display = 'none'; 
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const welcomeMessageEl = document.getElementById('welcomeMessage');
             const userGreetingNavEl = document.getElementById('userGreetingNav');
@@ -126,7 +136,7 @@
             const myProgressListDivEl = document.getElementById('my-progress-list');
             const availableLanguagesListDivEl = document.getElementById('available-languages-list');
 
-            const paymentModalEl = document.getElementById('paymentModal');
+            const paymentModalEl = document.getElementById('paymentModal'); // Still useful to get reference if needed elsewhere
             const paymentFormEl = document.getElementById('paymentForm');
             const paymentCourseNameEl = document.getElementById('paymentCourseName');
             const paymentCoursePriceEl = document.getElementById('paymentCoursePrice');
@@ -143,17 +153,15 @@
                 }, duration);
             }
             
-            function openModal(modalId) { 
-                const modal = document.getElementById(modalId);
-                if (modal) modal.style.display = 'flex';
-            }
-            function closeModal(modalId) { 
-                const modal = document.getElementById(modalId);
-                if (modal) modal.style.display = 'none'; 
-            }
-            window.onclick = function(event) { // Close modal if clicked outside content
+            // Close modal if clicked outside content - this can also be global
+            window.onclick = function(event) { 
                 if (event.target.classList.contains('modal')) {
-                    event.target.style.display = "none";
+                    // Check if the target itself is a modal (the backdrop)
+                    // closeModal(event.target.id); // This would require modals to have IDs passed to closeModal
+                    // Safer to just hide the specific modal if it's the paymentModal for now
+                     if (event.target.id === 'paymentModal') {
+                        closeModal('paymentModal');
+                     }
                 }
             }
 
@@ -244,7 +252,7 @@
                     paymentCourseNameEl.textContent = courseToEnroll.name;
                     paymentCoursePriceEl.textContent = parseFloat(courseToEnroll.price).toFixed(2);
                     paymentCourseDataInputEl.value = JSON.stringify(courseToEnroll);
-                    openModal('paymentModal');
+                    openModal('paymentModal'); // Uses the global openModal
                 } else {
                     enrollInLangCourse(courseToEnroll);
                 }
@@ -262,14 +270,10 @@
                         return;
                     }
 
-                    // --- MRC Bank Payment Simulation ---
                     const mrcBankUsers = JSON.parse(localStorage.getItem('mrcBankUsers')) || [];
-                    
-                    // MODIFIED: Find user by card details ONLY, removing the email check.
                     const mrcBankUserIndex = mrcBankUsers.findIndex(user => user.cardNumber === mrcCardNumber && user.cvv === mrcCardCVV);
 
                     if (mrcBankUserIndex === -1) {
-                        // MODIFIED: Updated error message
                         showUserMessage("Invalid MRC Bank card number or CVV.", "error");
                         return;
                     }
@@ -293,11 +297,10 @@
                     });
                     
                     localStorage.setItem('mrcBankUsers', JSON.stringify(mrcBankUsers));
-                    // --- End MRC Bank Payment Simulation ---
 
                     showUserMessage(`Payment of ${coursePrice.toFixed(2)} MRC successful!`, "success");
                     enrollInLangCourse(courseToEnroll);
-                    closeModal('paymentModal');
+                    closeModal('paymentModal'); // Uses the global closeModal
                     paymentFormEl.reset();
                 });
             }
