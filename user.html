@@ -241,13 +241,11 @@
 
             function handleEnrollment(courseToEnroll) {
                 if (courseToEnroll.isPaid) {
-                    // Show payment modal
                     paymentCourseNameEl.textContent = courseToEnroll.name;
                     paymentCoursePriceEl.textContent = parseFloat(courseToEnroll.price).toFixed(2);
-                    paymentCourseDataInputEl.value = JSON.stringify(courseToEnroll); // Store course data for payment processing
+                    paymentCourseDataInputEl.value = JSON.stringify(courseToEnroll);
                     openModal('paymentModal');
                 } else {
-                    // Directly enroll in free course
                     enrollInLangCourse(courseToEnroll);
                 }
             }
@@ -266,14 +264,13 @@
 
                     // --- MRC Bank Payment Simulation ---
                     const mrcBankUsers = JSON.parse(localStorage.getItem('mrcBankUsers')) || [];
-                    // Find user by card details (in a real app, this would be a secure API call)
-                    // For this demo, we'll find the MRC Languages user's corresponding MRC Bank account by email.
-                    // This assumes the MRC Languages user has an MRC Bank account with the same email.
-                    const mrcBankUserIndex = mrcBankUsers.findIndex(user => user.email === mrcLangLoggedInUserEmail && user.cardNumber === mrcCardNumber && user.cvv === mrcCardCVV);
-
+                    
+                    // MODIFIED: Find user by card details ONLY, removing the email check.
+                    const mrcBankUserIndex = mrcBankUsers.findIndex(user => user.cardNumber === mrcCardNumber && user.cvv === mrcCardCVV);
 
                     if (mrcBankUserIndex === -1) {
-                        showUserMessage("Invalid MRC Bank card details or card not linked to your email.", "error");
+                        // MODIFIED: Updated error message
+                        showUserMessage("Invalid MRC Bank card number or CVV.", "error");
                         return;
                     }
 
@@ -281,11 +278,10 @@
                     const coursePrice = parseFloat(courseToEnroll.price);
 
                     if (bankUser.balance < coursePrice) {
-                        showUserMessage("Insufficient balance in your MRC Bank account.", "error");
+                        showUserMessage(`Insufficient balance in the MRC Bank account. Current balance: ${bankUser.balance.toFixed(2)} MRC.`, "error");
                         return;
                     }
 
-                    // Process payment: Deduct from MRC Bank balance & add transaction
                     bankUser.balance -= coursePrice;
                     if (!bankUser.transactions) bankUser.transactions = [];
                     bankUser.transactions.push({
@@ -296,16 +292,15 @@
                         type: "payment"
                     });
                     
-                    localStorage.setItem('mrcBankUsers', JSON.stringify(mrcBankUsers)); // Save updated MRC Bank users
+                    localStorage.setItem('mrcBankUsers', JSON.stringify(mrcBankUsers));
                     // --- End MRC Bank Payment Simulation ---
 
                     showUserMessage(`Payment of ${coursePrice.toFixed(2)} MRC successful!`, "success");
-                    enrollInLangCourse(courseToEnroll); // Enroll in the language course
+                    enrollInLangCourse(courseToEnroll);
                     closeModal('paymentModal');
                     paymentFormEl.reset();
                 });
             }
-
 
             function enrollInLangCourse(course) {
                 let enrolledCourses = getUserEnrolledLangCourses();
