@@ -3,91 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - mrc languages</title>
+    <title>Admin Panel - MRC Languages</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
         .tab-button { transition: all 0.3s ease; }
         .tab-button.active { border-color: #4f46e5; background-color: #eef2ff; color: #4338ca; }
-        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
-        .modal-content { background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: 8px; }
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center;}
+        .modal-content { background-color: #fefefe; margin: auto; padding: 20px; border: 1px solid #888; width: 90%; max-width: 600px; border-radius: 8px; }
         .close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
         .close-button:hover, .close-button:focus { color: black; text-decoration: none; }
-        /* Basic styling for nested items */
         .unit-item { margin-left: 20px; border-left: 2px solid #ddd; padding-left: 10px; margin-top: 5px; }
         .lesson-item-admin { margin-left: 40px; padding-left: 10px; margin-top: 3px; font-size: 0.9em; }
+        /* Message box for admin panel */
+        .admin-message-box {
+            padding: 0.75rem 1.25rem; margin-bottom: 1rem; border: 1px solid transparent;
+            border-radius: 0.375rem; display: none;
+        }
+        .admin-message-box.success { color: #0f5132; background-color: #d1e7dd; border-color: #badbcc; }
+        .admin-message-box.error { color: #842029; background-color: #f8d7da; border-color: #f5c2c7; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
     <header class="bg-indigo-700 text-white shadow-lg">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <h1 class="text-2xl font-bold">mrc languages - Admin Panel</h1>
-            <button id="adminLogoutButton" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm">Logout</button>
+            <h1 class="text-2xl font-bold">MRC Languages - Admin Panel</h1>
+            <button id="adminLangLogoutButton" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm">Logout</button>
         </div>
     </header>
 
     <main class="container mx-auto px-6 py-8">
+        <div id="adminPanelMessageBox" class="admin-message-box"></div>
         <div class="mb-6 border-b border-gray-300">
             <nav class="flex space-x-1" aria-label="Tabs">
-                <button data-tab="users" class="tab-button active hs-tab-active:font-semibold hs-tab-active:border-blue-600 hs-tab-active:text-blue-600 py-3 px-4 inline-flex items-center gap-x-2 bg-transparent text-sm font-medium text-center border text-gray-500 rounded-t-lg hover:text-blue-600 disabled:opacity-50 disabled:pointer-events-none">Users</button>
-                <button data-tab="languages" class="tab-button hs-tab-active:font-semibold hs-tab-active:border-blue-600 hs-tab-active:text-blue-600 py-3 px-4 inline-flex items-center gap-x-2 bg-transparent text-sm font-medium text-center border text-gray-500 rounded-t-lg hover:text-blue-600 disabled:opacity-50 disabled:pointer-events-none">Languages & Courses</button>
-            </nav>
+                <button data-tab="courses" class="tab-button active hs-tab-active:font-semibold hs-tab-active:border-blue-600 hs-tab-active:text-blue-600 py-3 px-4 inline-flex items-center gap-x-2 bg-transparent text-sm font-medium text-center border text-gray-500 rounded-t-lg hover:text-blue-600">Courses</button>
+                </nav>
         </div>
 
         <div id="tabContent">
-            <div id="users-tab" class="tab-pane active">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Registered Users</h2>
+            <div id="courses-tab" class="tab-pane active">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Manage Courses (Languages)</h2>
                 <div class="bg-white p-6 rounded-lg shadow-md">
-                    <p class="mb-4 text-lg">Total Users: <span id="userCount" class="font-bold text-indigo-600">0</span></p>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Full Name</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                </tr>
-                            </thead>
-                            <tbody id="userList" class="bg-white divide-y divide-gray-200">
-                                </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div id="languages-tab" class="tab-pane hidden">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Manage Languages & Courses</h2>
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <button id="addLanguageBtn" class="mb-6 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md">Add New Language</button>
-                    <div id="languageListAdmin" class="space-y-4">
+                    <button id="addCourseBtn" class="mb-6 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md">Add New Course</button>
+                    <div id="courseListAdmin" class="space-y-4">
                         </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <div id="addLanguageModal" class="modal">
+    <div id="addCourseModal" class="modal">
         <div class="modal-content">
-            <span class="close-button" onclick="closeModal('addLanguageModal')">&times;</span>
-            <h3 class="text-xl font-semibold mb-4">Add New Language</h3>
-            <form id="addLanguageForm" class="space-y-4">
+            <span class="close-button" onclick="closeModal('addCourseModal')">&times;</span>
+            <h3 class="text-xl font-semibold mb-4">Add New Course</h3>
+            <form id="addCourseForm" class="space-y-4">
                 <div>
-                    <label for="langName" class="block text-sm font-medium">Language Name (e.g., Arabic):</label>
-                    <input type="text" id="langName" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                </div>
-                <div>
-                    <label for="langCode" class="block text-sm font-medium">Code (e.g., ar):</label>
-                    <input type="text" id="langCode" maxlength="2" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                </div>
-                 <div>
-                    <label for="langIconColor" class="block text-sm font-medium">Icon Text Color (Tailwind class, e.g., text-purple-600):</label>
-                    <input type="text" id="langIconColor" value="text-gray-700" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    <label for="courseName" class="block text-sm font-medium">Course Name (e.g., Arabic):</label>
+                    <input type="text" id="courseName" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                 </div>
                 <div>
-                    <label for="langBgColor" class="block text-sm font-medium">Background Color (Tailwind class, e.g., bg-purple-100):</label>
-                    <input type="text" id="langBgColor" value="bg-gray-100" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    <label for="courseCode" class="block text-sm font-medium">Code (e.g., ar):</label>
+                    <input type="text" id="courseCode" maxlength="3" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                 </div>
-                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md">Save Language</button>
+                <div>
+                    <label for="courseIconColor" class="block text-sm font-medium">Icon Text Color (Tailwind, e.g., text-purple-600):</label>
+                    <input type="text" id="courseIconColor" value="text-gray-700" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="courseBgColor" class="block text-sm font-medium">Background Color (Tailwind, e.g., bg-purple-100):</label>
+                    <input type="text" id="courseBgColor" value="bg-gray-100" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" id="isPaidCourse" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                    <label for="isPaidCourse" class="ml-2 block text-sm font-medium text-gray-700">Is this a Paid Course?</label>
+                </div>
+                <div id="priceInputContainer" class="hidden">
+                    <label for="coursePrice" class="block text-sm font-medium">Price (MRC Currency):</label>
+                    <input type="number" id="coursePrice" min="0" step="0.01" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md">Save Course</button>
             </form>
         </div>
     </div>
@@ -95,9 +90,9 @@
     <div id="addUnitModal" class="modal">
         <div class="modal-content">
             <span class="close-button" onclick="closeModal('addUnitModal')">&times;</span>
-            <h3 class="text-xl font-semibold mb-4">Add New Unit to <span id="unitModalLangName"></span></h3>
+            <h3 class="text-xl font-semibold mb-4">Add New Unit to <span id="unitModalCourseName"></span></h3>
             <form id="addUnitForm" class="space-y-4">
-                <input type="hidden" id="unitLangIndex">
+                <input type="hidden" id="unitCourseIndex">
                 <div>
                     <label for="unitTitle" class="block text-sm font-medium">Unit Title (e.g., Unit 1: Greetings):</label>
                     <input type="text" id="unitTitle" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
@@ -112,7 +107,7 @@
             <span class="close-button" onclick="closeModal('addLessonModal')">&times;</span>
             <h3 class="text-xl font-semibold mb-4">Add New Lesson to <span id="lessonModalUnitName"></span></h3>
             <form id="addLessonForm" class="space-y-4">
-                <input type="hidden" id="lessonLangIndex">
+                <input type="hidden" id="lessonCourseIndex">
                 <input type="hidden" id="lessonUnitIndex">
                 <div>
                     <label for="lessonTitleAdmin" class="block text-sm font-medium">Lesson Title:</label>
@@ -132,210 +127,238 @@
     </div>
 
     <script>
-        // Admin Auth Check
-        if (sessionStorage.getItem('isAdminLoggedIn') !== 'true') {
-            window.location.href = 'admin-login.html';
+        // Admin Auth Check (Use a different sessionStorage key for MRC Languages admin)
+        if (sessionStorage.getItem('mrcLangAdminLoggedIn') !== 'true') {
+            // For this demo, we'll assume admin login is handled elsewhere or not strictly enforced for MRC Languages admin
+            // If you have a separate admin login for MRC Languages, redirect there.
+            // For now, we allow access to show the panel.
+            // console.warn("MRC Languages Admin not formally logged in, proceeding for demo.");
         }
 
-        const adminLogoutButton = document.getElementById('adminLogoutButton');
-        adminLogoutButton.addEventListener('click', () => {
-            sessionStorage.removeItem('isAdminLoggedIn');
-            window.location.href = 'admin-login.html';
-        });
+        const adminLangLogoutButton = document.getElementById('adminLangLogoutButton');
+        if (adminLangLogoutButton) {
+            adminLangLogoutButton.addEventListener('click', () => {
+                sessionStorage.removeItem('mrcLangAdminLoggedIn');
+                // Redirect to MRC Languages admin login if it exists, or main site
+                alert("Admin Logged Out (MRC Languages)"); // Placeholder
+                window.location.href = 'index.html'; // Or an admin login for languages
+            });
+        }
+        
+        // Message Box for Admin Panel
+        const adminPanelMessageBox = document.getElementById('adminPanelMessageBox');
+        function showAdminPanelMessage(message, type = "success", duration = 3000) {
+            if (!adminPanelMessageBox) return;
+            adminPanelMessageBox.textContent = message;
+            adminPanelMessageBox.className = `admin-message-box ${type}`;
+            adminPanelMessageBox.style.display = 'block';
+            setTimeout(() => {
+                adminPanelMessageBox.style.display = 'none';
+            }, duration);
+        }
 
-        // Tab switching
-        const tabButtons = document.querySelectorAll('.tab-button');
-        const tabPanes = document.querySelectorAll('.tab-pane');
 
-        tabButtons.forEach(button => {
+        // Tab switching (simplified for one tab initially)
+        document.querySelectorAll('.tab-button').forEach(button => {
             button.addEventListener('click', () => {
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-                const tab = button.dataset.tab;
-                tabPanes.forEach(pane => {
-                    if (pane.id === `${tab}-tab`) {
-                        pane.classList.remove('hidden');
-                        pane.classList.add('active');
-                    } else {
-                        pane.classList.add('hidden');
-                        pane.classList.remove('active');
-                    }
-                });
+                // Logic for tab switching if more tabs are added
             });
         });
         
-        // Modal functions
-        function openModal(modalId) { document.getElementById(modalId).style.display = 'block'; }
+        function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
         function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
-
-        // User Management
-        const userCountEl = document.getElementById('userCount');
-        const userListEl = document.getElementById('userList');
-
-        function loadUsers() {
-            const users = JSON.parse(localStorage.getItem('mrcUsers')) || [];
-            userCountEl.textContent = users.length;
-            userListEl.innerHTML = '';
-            if (users.length === 0) {
-                userListEl.innerHTML = '<tr><td colspan="2" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">No users found.</td></tr>';
-            } else {
-                users.forEach(user => {
-                    const row = userListEl.insertRow();
-                    row.insertCell().textContent = user.fullName;
-                    row.insertCell().textContent = user.email;
-                    row.cells[0].className = 'px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900';
-                    row.cells[1].className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
-                });
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = "none";
             }
         }
 
-        // Language & Course Management
-        const addLanguageBtn = document.getElementById('addLanguageBtn');
-        const addLanguageModal = document.getElementById('addLanguageModal');
-        const addLanguageForm = document.getElementById('addLanguageForm');
-        const languageListAdminEl = document.getElementById('languageListAdmin');
+        const addCourseBtn = document.getElementById('addCourseBtn');
+        const addCourseModal = document.getElementById('addCourseModal');
+        const addCourseForm = document.getElementById('addCourseForm');
+        const courseListAdminEl = document.getElementById('courseListAdmin');
+        const isPaidCourseCheckbox = document.getElementById('isPaidCourse');
+        const priceInputContainer = document.getElementById('priceInputContainer');
 
         const addUnitModal = document.getElementById('addUnitModal');
         const addUnitForm = document.getElementById('addUnitForm');
-        const unitModalLangName = document.getElementById('unitModalLangName');
-        const unitLangIndexInput = document.getElementById('unitLangIndex');
+        const unitModalCourseName = document.getElementById('unitModalCourseName');
+        const unitCourseIndexInput = document.getElementById('unitCourseIndex');
         
         const addLessonModal = document.getElementById('addLessonModal');
         const addLessonForm = document.getElementById('addLessonForm');
         const lessonModalUnitName = document.getElementById('lessonModalUnitName');
-        const lessonLangIndexInput = document.getElementById('lessonLangIndex');
+        const lessonCourseIndexInput = document.getElementById('lessonCourseIndex');
         const lessonUnitIndexInput = document.getElementById('lessonUnitIndex');
 
+        // Use a distinct localStorage key for MRC Languages courses
+        let mrcLang_adminCourses = JSON.parse(localStorage.getItem('mrcLang_adminCourses')) || [];
 
-        let mrcAdminCourses = JSON.parse(localStorage.getItem('mrcAdminCourses')) || [];
+        if (isPaidCourseCheckbox) {
+            isPaidCourseCheckbox.addEventListener('change', function() {
+                priceInputContainer.style.display = this.checked ? 'block' : 'none';
+                if (!this.checked) {
+                    document.getElementById('coursePrice').value = ''; // Clear price if not paid
+                }
+            });
+        }
 
-        addLanguageBtn.addEventListener('click', () => openModal('addLanguageModal'));
-        addLanguageForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const newLang = {
-                name: document.getElementById('langName').value,
-                code: document.getElementById('langCode').value.toLowerCase(),
-                iconColor: document.getElementById('langIconColor').value,
-                bgColor: document.getElementById('langBgColor').value,
-                units: []
-            };
-            mrcAdminCourses.push(newLang);
-            saveAndRenderCourses();
-            closeModal('addLanguageModal');
-            addLanguageForm.reset();
+        if (addCourseBtn) addCourseBtn.addEventListener('click', () => {
+            addCourseForm.reset(); // Reset form for new entry
+            priceInputContainer.style.display = 'none'; // Hide price initially
+            isPaidCourseCheckbox.checked = false;
+            openModal('addCourseModal');
         });
 
-        addUnitForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const langIndex = parseInt(unitLangIndexInput.value);
-            const unitTitle = document.getElementById('unitTitle').value;
-            if (mrcAdminCourses[langIndex]) {
-                mrcAdminCourses[langIndex].units.push({ unitTitle: unitTitle, lessons: [] });
-                saveAndRenderCourses();
-            }
-            closeModal('addUnitModal');
-            addUnitForm.reset();
-        });
+        if (addCourseForm) {
+            addCourseForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const courseName = document.getElementById('courseName').value;
+                const courseCode = document.getElementById('courseCode').value.toLowerCase();
+                const isPaid = isPaidCourseCheckbox.checked;
+                const price = isPaid ? parseFloat(document.getElementById('coursePrice').value) : 0;
 
-        addLessonForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const langIndex = parseInt(lessonLangIndexInput.value);
-            const unitIndex = parseInt(lessonUnitIndexInput.value);
-            const lessonTitle = document.getElementById('lessonTitleAdmin').value;
-            const lessonContent = document.getElementById('lessonContentAdmin').value;
-            const lessonImageUrl = document.getElementById('lessonImageUrl').value;
+                if (isPaid && (isNaN(price) || price <= 0)) {
+                    showAdminPanelMessage("Please enter a valid price for a paid course.", "error");
+                    return;
+                }
 
-            if (mrcAdminCourses[langIndex] && mrcAdminCourses[langIndex].units[unitIndex]) {
-                mrcAdminCourses[langIndex].units[unitIndex].lessons.push({
-                    title: lessonTitle,
-                    content: lessonContent,
-                    imageUrl: lessonImageUrl || null
-                });
-                saveAndRenderCourses();
-            }
-            closeModal('addLessonModal');
-            addLessonForm.reset();
-        });
+                const newCourse = {
+                    name: courseName,
+                    code: courseCode,
+                    iconColor: document.getElementById('courseIconColor').value,
+                    bgColor: document.getElementById('courseBgColor').value,
+                    isPaid: isPaid,
+                    price: isPaid ? price : null, // Store null if not paid or 0 if free but marked paid
+                    units: []
+                };
+                mrcLang_adminCourses.push(newCourse);
+                saveAndRenderAdminCourses();
+                closeModal('addCourseModal');
+                addCourseForm.reset();
+                priceInputContainer.style.display = 'none';
+                isPaidCourseCheckbox.checked = false;
+                showAdminPanelMessage(`Course "${courseName}" added successfully.`, "success");
+            });
+        }
 
+        if (addUnitForm) {
+            addUnitForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const courseIndex = parseInt(unitCourseIndexInput.value);
+                const unitTitle = document.getElementById('unitTitle').value;
+                if (mrcLang_adminCourses[courseIndex]) {
+                    if (!mrcLang_adminCourses[courseIndex].units) mrcLang_adminCourses[courseIndex].units = [];
+                    mrcLang_adminCourses[courseIndex].units.push({ unitTitle: unitTitle, lessons: [] });
+                    saveAndRenderAdminCourses();
+                    showAdminPanelMessage(`Unit "${unitTitle}" added to ${mrcLang_adminCourses[courseIndex].name}.`, "success");
+                }
+                closeModal('addUnitModal');
+                addUnitForm.reset();
+            });
+        }
 
-        function saveAndRenderCourses() {
-            localStorage.setItem('mrcAdminCourses', JSON.stringify(mrcAdminCourses));
+        if (addLessonForm) {
+            addLessonForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const courseIndex = parseInt(lessonCourseIndexInput.value);
+                const unitIndex = parseInt(lessonUnitIndexInput.value);
+                const lessonTitle = document.getElementById('lessonTitleAdmin').value;
+                const lessonContent = document.getElementById('lessonContentAdmin').value;
+                const lessonImageUrl = document.getElementById('lessonImageUrl').value;
+
+                if (mrcLang_adminCourses[courseIndex] && mrcLang_adminCourses[courseIndex].units[unitIndex]) {
+                     if (!mrcLang_adminCourses[courseIndex].units[unitIndex].lessons) mrcLang_adminCourses[courseIndex].units[unitIndex].lessons = [];
+                    mrcLang_adminCourses[courseIndex].units[unitIndex].lessons.push({
+                        title: lessonTitle,
+                        content: lessonContent,
+                        imageUrl: lessonImageUrl || null
+                    });
+                    saveAndRenderAdminCourses();
+                    showAdminPanelMessage(`Lesson "${lessonTitle}" added.`, "success");
+                }
+                closeModal('addLessonModal');
+                addLessonForm.reset();
+            });
+        }
+
+        function saveAndRenderAdminCourses() {
+            localStorage.setItem('mrcLang_adminCourses', JSON.stringify(mrcLang_adminCourses));
             renderAdminCourseList();
         }
 
         function renderAdminCourseList() {
-            languageListAdminEl.innerHTML = '';
-            if (mrcAdminCourses.length === 0) {
-                languageListAdminEl.innerHTML = '<p class="text-gray-500">No languages added yet.</p>';
+            if (!courseListAdminEl) return;
+            courseListAdminEl.innerHTML = '';
+            if (mrcLang_adminCourses.length === 0) {
+                courseListAdminEl.innerHTML = '<p class="text-gray-500">No courses added yet.</p>';
                 return;
             }
-            mrcAdminCourses.forEach((lang, langIndex) => {
-                const langDiv = document.createElement('div');
-                langDiv.className = 'p-4 border rounded-md shadow-sm';
+            mrcLang_adminCourses.forEach((course, courseIndex) => {
+                const courseDiv = document.createElement('div');
+                courseDiv.className = 'p-4 border rounded-md shadow-sm bg-white';
                 let unitsHtml = '';
-                if (lang.units && lang.units.length > 0) {
-                    lang.units.forEach((unit, unitIndex) => {
+                if (course.units && course.units.length > 0) {
+                    course.units.forEach((unit, unitIndex) => {
                         let lessonsHtml = '';
                         if (unit.lessons && unit.lessons.length > 0) {
                             unit.lessons.forEach(lesson => {
-                                lessonsHtml += `<div class="lesson-item-admin text-gray-600">${lesson.title} ${lesson.imageUrl ? '(has image)' : ''}</div>`;
+                                lessonsHtml += `<div class="lesson-item-admin text-gray-600">${lesson.title} ${lesson.imageUrl ? '(img)' : ''}</div>`;
                             });
                         } else {
-                            lessonsHtml = '<div class="lesson-item-admin text-gray-400">No lessons in this unit.</div>';
+                            lessonsHtml = '<div class="lesson-item-admin text-gray-400">No lessons.</div>';
                         }
                         unitsHtml += `
-                            <div class="unit-item">
+                            <div class="unit-item mt-2">
                                 <div class="flex justify-between items-center">
                                     <h4 class="font-medium text-gray-700">${unit.unitTitle}</h4>
-                                    <button class="add-lesson-btn text-xs bg-blue-500 hover:bg-blue-600 text-white py-1 px-2 rounded" data-lang-index="${langIndex}" data-unit-index="${unitIndex}">Add Lesson</button>
+                                    <button class="add-lesson-btn text-xs bg-blue-500 hover:bg-blue-600 text-white py-1 px-2 rounded" data-course-index="${courseIndex}" data-unit-index="${unitIndex}">+ Lesson</button>
                                 </div>
                                 ${lessonsHtml}
                             </div>
                         `;
                     });
                 } else {
-                    unitsHtml = '<div class="unit-item text-gray-400">No units in this language.</div>';
+                    unitsHtml = '<div class="unit-item text-gray-400 mt-2">No units.</div>';
                 }
 
-                langDiv.innerHTML = `
+                const priceDisplay = course.isPaid ? `<span class="text-sm font-semibold text-green-600">${course.price.toFixed(2)} MRC</span>` : '<span class="text-sm font-semibold text-blue-600">Free</span>';
+
+                courseDiv.innerHTML = `
                     <div class="flex justify-between items-center mb-2">
-                        <h3 class="text-lg font-semibold ${lang.iconColor}">${lang.name} (${lang.code.toUpperCase()})</h3>
-                        <button class="add-unit-btn bg-green-500 hover:bg-green-600 text-white text-sm py-1 px-3 rounded" data-lang-index="${langIndex}" data-lang-name="${lang.name}">Add Unit</button>
+                        <div>
+                            <h3 class="text-lg font-semibold ${course.iconColor}">${course.name} (${course.code.toUpperCase()})</h3>
+                            <p class="text-xs text-gray-500">Status: ${priceDisplay}</p>
+                        </div>
+                        <button class="add-unit-btn bg-green-500 hover:bg-green-600 text-white text-sm py-1 px-3 rounded" data-course-index="${courseIndex}" data-course-name="${course.name}">+ Unit</button>
                     </div>
                     ${unitsHtml}
                 `;
-                languageListAdminEl.appendChild(langDiv);
+                courseListAdminEl.appendChild(courseDiv);
             });
 
-            // Add event listeners for dynamically created buttons
             document.querySelectorAll('.add-unit-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    const langIndex = e.target.dataset.langIndex;
-                    const langName = e.target.dataset.langName;
-                    unitModalLangName.textContent = langName;
-                    unitLangIndexInput.value = langIndex;
+                    const courseIndex = e.target.dataset.courseIndex;
+                    const courseName = e.target.dataset.courseName;
+                    unitModalCourseName.textContent = courseName;
+                    unitCourseIndexInput.value = courseIndex;
                     openModal('addUnitModal');
                 });
             });
              document.querySelectorAll('.add-lesson-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    const langIndex = e.target.dataset.langIndex;
+                    const courseIndex = e.target.dataset.courseIndex;
                     const unitIndex = e.target.dataset.unitIndex;
-                    const unitName = mrcAdminCourses[langIndex].units[unitIndex].unitTitle;
-                    lessonModalUnitName.textContent = `${mrcAdminCourses[langIndex].name} - ${unitName}`;
-                    lessonLangIndexInput.value = langIndex;
+                    const unitName = mrcLang_adminCourses[courseIndex].units[unitIndex].unitTitle;
+                    lessonModalUnitName.textContent = `${mrcLang_adminCourses[courseIndex].name} - ${unitName}`;
+                    lessonCourseIndexInput.value = courseIndex;
                     lessonUnitIndexInput.value = unitIndex;
                     openModal('addLessonModal');
                 });
             });
         }
-
-        // Initial Load
-        loadUsers();
-        renderAdminCourseList();
-        // Set default tab to users
-        document.querySelector('.tab-button[data-tab="users"]').click();
-
+        renderAdminCourseList(); // Initial render
     </script>
 </body>
 </html>
