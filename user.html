@@ -136,7 +136,7 @@
             const myProgressListDivEl = document.getElementById('my-progress-list');
             const availableLanguagesListDivEl = document.getElementById('available-languages-list');
 
-            const paymentModalEl = document.getElementById('paymentModal'); // Still useful to get reference if needed elsewhere
+            const paymentModalEl = document.getElementById('paymentModal'); 
             const paymentFormEl = document.getElementById('paymentForm');
             const paymentCourseNameEl = document.getElementById('paymentCourseName');
             const paymentCoursePriceEl = document.getElementById('paymentCoursePrice');
@@ -153,21 +153,15 @@
                 }, duration);
             }
             
-            // Close modal if clicked outside content - this can also be global
             window.onclick = function(event) { 
                 if (event.target.classList.contains('modal')) {
-                    // Check if the target itself is a modal (the backdrop)
-                    // closeModal(event.target.id); // This would require modals to have IDs passed to closeModal
-                    // Safer to just hide the specific modal if it's the paymentModal for now
                      if (event.target.id === 'paymentModal') {
                         closeModal('paymentModal');
                      }
                 }
             }
 
-
-            // User Authentication for MRC Languages (using its own session)
-            const mrcLangLoggedInUserEmail = sessionStorage.getItem('loggedInUserEmail'); // Assuming this key is from MRC Languages login
+            const mrcLangLoggedInUserEmail = sessionStorage.getItem('loggedInUserEmail'); 
             const mrcLangLoggedInUserFullName = sessionStorage.getItem('loggedInUserFullName');
 
             if (mrcLangLoggedInUserEmail && mrcLangLoggedInUserFullName) {
@@ -179,7 +173,7 @@
                 if (welcomeMessageEl) welcomeMessageEl.textContent = 'Access Denied';
                 showUserMessage("You are not logged in to MRC Languages. Redirecting...", "error");
                 setTimeout(() => {
-                    window.location.href = 'login.html'; // Redirect to MRC Languages login
+                    window.location.href = 'login.html'; 
                 }, 2000);
             }
 
@@ -189,7 +183,7 @@
                     sessionStorage.removeItem('loggedInUserFullName');
                     showUserMessage("You have been logged out from MRC Languages.", "success");
                     setTimeout(() => {
-                        window.location.href = 'index.html'; // Redirect to MRC Languages homepage
+                        window.location.href = 'index.html'; 
                     }, 1500);
                 });
             }
@@ -252,7 +246,7 @@
                     paymentCourseNameEl.textContent = courseToEnroll.name;
                     paymentCoursePriceEl.textContent = parseFloat(courseToEnroll.price).toFixed(2);
                     paymentCourseDataInputEl.value = JSON.stringify(courseToEnroll);
-                    openModal('paymentModal'); // Uses the global openModal
+                    openModal('paymentModal'); 
                 } else {
                     enrollInLangCourse(courseToEnroll);
                 }
@@ -261,9 +255,12 @@
             if (paymentFormEl) {
                 paymentFormEl.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    const mrcCardNumber = document.getElementById('mrcCardNumber').value;
-                    const mrcCardCVV = document.getElementById('mrcCardCVV').value;
+                    // Trim input values
+                    const mrcCardNumber = document.getElementById('mrcCardNumber').value.trim();
+                    const mrcCardCVV = document.getElementById('mrcCardCVV').value.trim();
                     const courseToEnroll = JSON.parse(paymentCourseDataInputEl.value);
+
+                    console.log("Attempting payment with Card:", `"${mrcCardNumber}"`, "CVV:", `"${mrcCardCVV}"`); // Debugging
 
                     if (!mrcCardNumber || !mrcCardCVV) {
                         showUserMessage("Please enter your MRC Bank card details.", "error");
@@ -271,14 +268,21 @@
                     }
 
                     const mrcBankUsers = JSON.parse(localStorage.getItem('mrcBankUsers')) || [];
-                    const mrcBankUserIndex = mrcBankUsers.findIndex(user => user.cardNumber === mrcCardNumber && user.cvv === mrcCardCVV);
+                    console.log("Available MRC Bank Users:", mrcBankUsers); // Debugging
+
+                    const mrcBankUserIndex = mrcBankUsers.findIndex(user => {
+                        console.log(`Comparing with stored card: "${user.cardNumber}", cvv: "${user.cvv}"`); // Debugging
+                        return user.cardNumber === mrcCardNumber && user.cvv === mrcCardCVV;
+                    });
 
                     if (mrcBankUserIndex === -1) {
-                        showUserMessage("Invalid MRC Bank card number or CVV.", "error");
+                        showUserMessage("Invalid MRC Bank card number or CVV. Please double-check your details.", "error");
+                        console.error("Card match not found. Entered:", {card: mrcCardNumber, cvv: mrcCardCVV}); // Debugging
                         return;
                     }
 
                     const bankUser = mrcBankUsers[mrcBankUserIndex];
+                    console.log("Found matching bank user:", bankUser); // Debugging
                     const coursePrice = parseFloat(courseToEnroll.price);
 
                     if (bankUser.balance < coursePrice) {
@@ -300,7 +304,7 @@
 
                     showUserMessage(`Payment of ${coursePrice.toFixed(2)} MRC successful!`, "success");
                     enrollInLangCourse(courseToEnroll);
-                    closeModal('paymentModal'); // Uses the global closeModal
+                    closeModal('paymentModal'); 
                     paymentFormEl.reset();
                 });
             }
