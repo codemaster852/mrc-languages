@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Content - mrc languages</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .message-box { 
+            position: fixed; top: 20px; right: 20px; padding: 1rem; border-radius: 0.5rem; color: white;
+            z-index: 1000; display: none; max-width: 300px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .message-box.success { background-color: #28a745; }
+        .message-box.error { background-color: #dc3545; }
+        .unit-title-nav { font-weight: 600; margin-top: 10px; margin-bottom: 5px; color: #374151; }
+        .lesson-item {
+            border-left: 4px solid transparent; transition: all 0.3s ease; padding-left: 15px; /* Indent lessons */
+        }
+        .lesson-item:hover, .lesson-item.active {
+            border-left-color: #4f46e5; background-color: #eef2ff;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col min-h-screen">
+
+    <header class="bg-white shadow-md">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="text-3xl font-bold text-indigo-600">mrc languages</a>
+            <div class="space-x-4 text-lg">
+                <a href="user.html" class="text-gray-600 hover:text-indigo-600">My Dashboard</a>
+                <span id="user-greeting-course-nav" class="text-gray-700 font-medium"></span>
+                <button id="logout-button-course" class="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition duration-300">Logout</button>
+            </div>
+        </nav>
+    </header>
+
+    <div id="messageBoxCourse" class="message-box"></div>
+
+    <main class="flex-grow container mx-auto px-6 py-12">
+        <div class="bg-white p-8 rounded-xl shadow-xl">
+            <a href="user.html" class="text-indigo-600 hover:text-indigo-800 mb-6 inline-block">&larr; Back to Dashboard</a>
+            <h1 id="course-title" class="text-4xl font-bold text-indigo-700 mb-2">Language Course</h1>
+            <p id="course-subtitle" class="text-lg text-gray-600 mb-8">Welcome to your learning journey!</p>
+
+            <div class="md:flex md:space-x-8">
+                <aside class="md:w-1/3 lg:w-1/4 mb-8 md:mb-0">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Course Outline</h2>
+                    <nav id="lesson-navigation" class="space-y-1">
+                        <p class="text-gray-500">Loading outline...</p>
+                    </nav>
+                </aside>
+
+                <section id="lesson-content-area" class="md:w-2/3 lg:w-3/4 bg-gray-50 p-6 rounded-lg shadow-inner">
+                    <h3 id="lesson-title" class="text-2xl font-semibold text-gray-800 mb-4">Select a lesson to begin</h3>
+                    <div id="lesson-content" class="prose max-w-none">
+                        <p class="text-gray-600">Lesson content will appear here.</p>
+                    </div>
+                    <div id="lesson-image-container" class="mt-4">
+                        </div>
+                    <div class="mt-6 flex justify-between items-center">
+                        <button id="prev-lesson-btn" class="bg-gray-300 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-400 transition duration-300 disabled:opacity-50" disabled>Previous</button>
+                        <button id="next-lesson-btn" class="bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 transition duration-300 disabled:opacity-50" disabled>Next Lesson</button>
+                    </div>
+                     <div class="mt-6">
+                        <label for="mark-complete-checkbox" class="flex items-center text-lg">
+                            <input type="checkbox" id="mark-complete-checkbox" class="h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 mr-2">
+                            Mark as Complete
+                        </label>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-8 mt-auto">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; <span id="currentYearCourse"></span> mrc languages. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const courseTitleEl = document.getElementById('course-title');
+            const courseSubtitleEl = document.getElementById('course-subtitle');
+            const lessonNavigationEl = document.getElementById('lesson-navigation');
+            const lessonTitleEl = document.getElementById('lesson-title');
+            const lessonContentEl = document.getElementById('lesson-content');
+            const lessonImageContainerEl = document.getElementById('lesson-image-container');
+            const userGreetingNavEl = document.getElementById('user-greeting-course-nav');
+            const logoutButtonCourseEl = document.getElementById('logout-button-course');
+            const messageBoxCourseEl = document.getElementById('messageBoxCourse');
+            const prevLessonBtnEl = document.getElementById('prev-lesson-btn');
+            const nextLessonBtnEl = document.getElementById('next-lesson-btn');
+            const markCompleteCheckboxEl = document.getElementById('mark-complete-checkbox');
+
+            let currentCourseData = null; // Will hold the full course object { name, code, units: [...] }
+            let flatLessons = []; // A flat array of all lessons in the course for easy navigation
+            let currentFlatLessonIndex = -1;
+
+            function showCourseMessage(message, type = "success", duration = 3000) {
+                if (!messageBoxCourseEl) return;
+                messageBoxCourseEl.textContent = message;
+                messageBoxCourseEl.className = `message-box ${type}`;
+                messageBoxCourseEl.style.display = 'block';
+                setTimeout(() => {
+                    messageBoxCourseEl.style.display = 'none';
+                }, duration);
+            }
+
+            const loggedInUserEmail = sessionStorage.getItem('loggedInUserEmail');
+            const loggedInUserFullName = sessionStorage.getItem('loggedInUserFullName');
+
+            if (loggedInUserEmail && loggedInUserFullName) {
+                if (userGreetingNavEl) userGreetingNavEl.textContent = `Hi, ${loggedInUserFullName.split(' ')[0]}`;
+            } else {
+                showCourseMessage("You are not logged in. Redirecting...", "error");
+                setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+                return; 
+            }
+
+            if (logoutButtonCourseEl) {
+                logoutButtonCourseEl.addEventListener('click', () => {
+                    sessionStorage.removeItem('loggedInUserEmail');
+                    sessionStorage.removeItem('loggedInUserFullName');
+                    showCourseMessage("You have been logged out.", "success");
+                    setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+                });
+            }
+
+            const params = new URLSearchParams(window.location.search);
+            const courseNameFromUrl = params.get('lang');
+            
+            const allAdminCourses = JSON.parse(localStorage.getItem('mrcAdminCourses')) || [];
+            currentCourseData = allAdminCourses.find(course => course.name === courseNameFromUrl);
+
+            if (currentCourseData) {
+                if (courseTitleEl) courseTitleEl.textContent = `${currentCourseData.name} Course`;
+                if (courseSubtitleEl) courseSubtitleEl.textContent = `Master the basics of ${currentCourseData.name}.`;
+                
+                // Create a flat list of lessons for navigation, preserving unit and lesson indices
+                if (currentCourseData.units && currentCourseData.units.length > 0) {
+                    currentCourseData.units.forEach((unit, unitIndex) => {
+                        if (unit.lessons && unit.lessons.length > 0) {
+                            unit.lessons.forEach((lesson, lessonIndexInUnit) => {
+                                flatLessons.push({ ...lesson, unitIndex, lessonIndexInUnit, unitTitle: unit.unitTitle });
+                            });
+                        }
+                    });
+                }
+                
+                renderLessonNavigation();
+                if (flatLessons.length > 0) {
+                    loadLessonByFlatIndex(0); 
+                } else {
+                    lessonContentEl.innerHTML = "<p>No lessons available for this course yet.</p>";
+                    lessonTitleEl.textContent = "No Lessons";
+                }
+            } else {
+                if (courseTitleEl) courseTitleEl.textContent = 'Course Not Found';
+                if (lessonContentEl) lessonContentEl.innerHTML = '<p>The selected course could not be found. Please go back to your dashboard and select a valid course.</p>';
+            }
+
+            function renderLessonNavigation() {
+                if (!lessonNavigationEl) return;
+                lessonNavigationEl.innerHTML = '';
+                let globalLessonCounter = 0;
+
+                if (!currentCourseData || !currentCourseData.units || currentCourseData.units.length === 0) {
+                    lessonNavigationEl.innerHTML = '<p class="text-gray-500">No units or lessons in this course.</p>';
+                    return;
+                }
+
+                currentCourseData.units.forEach((unit) => {
+                    const unitTitleDiv = document.createElement('div');
+                    unitTitleDiv.className = 'unit-title-nav px-3 py-1';
+                    unitTitleDiv.textContent = unit.unitTitle;
+                    lessonNavigationEl.appendChild(unitTitleDiv);
+
+                    if (unit.lessons && unit.lessons.length > 0) {
+                        unit.lessons.forEach((lesson) => {
+                            const lessonLink = document.createElement('a');
+                            lessonLink.href = '#';
+                            lessonLink.textContent = lesson.title;
+                            lessonLink.className = 'block p-3 rounded-md hover:bg-indigo-100 lesson-item';
+                            lessonLink.setAttribute('data-flat-index', globalLessonCounter);
+                            lessonLink.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                loadLessonByFlatIndex(globalLessonCounter);
+                            });
+                            lessonNavigationEl.appendChild(lessonLink);
+                            globalLessonCounter++;
+                        });
+                    } else {
+                         const noLessonsDiv = document.createElement('div');
+                         noLessonsDiv.className = 'lesson-item text-gray-400 italic p-3';
+                         noLessonsDiv.textContent = 'No lessons in this unit.';
+                         lessonNavigationEl.appendChild(noLessonsDiv);
+                    }
+                });
+                 if (globalLessonCounter === 0) { // If no lessons were added across all units
+                    lessonNavigationEl.innerHTML = '<p class="text-gray-500">No lessons found in this course.</p>';
+                }
+            }
+
+            function loadLessonByFlatIndex(flatIndex) {
+                if (flatIndex < 0 || flatIndex >= flatLessons.length) return;
+                
+                currentFlatLessonIndex = flatIndex;
+                const lessonData = flatLessons[flatIndex];
+                
+                if (lessonTitleEl) lessonTitleEl.textContent = `${lessonData.unitTitle} - ${lessonData.title}`;
+                if (lessonContentEl) lessonContentEl.innerHTML = lessonData.content;
+
+                if (lessonImageContainerEl) {
+                    lessonImageContainerEl.innerHTML = ''; // Clear previous image
+                    if (lessonData.imageUrl) {
+                        const img = document.createElement('img');
+                        img.src = lessonData.imageUrl;
+                        img.alt = lessonData.title;
+                        img.className = 'mt-4 rounded-lg shadow-md max-w-full h-auto';
+                        // Add error handling for images
+                        img.onerror = function() {
+                            this.alt = 'Image not found';
+                            this.src = 'https://placehold.co/600x400/cccccc/ffffff?text=Image+Not+Found';
+                        };
+                        lessonImageContainerEl.appendChild(img);
+                    }
+                }
+
+
+                document.querySelectorAll('#lesson-navigation .lesson-item').forEach(item => {
+                    item.classList.remove('active', 'bg-indigo-100', 'text-indigo-700', 'font-semibold');
+                    if (parseInt(item.getAttribute('data-flat-index')) === flatIndex) {
+                        item.classList.add('active', 'bg-indigo-100', 'text-indigo-700', 'font-semibold');
+                    }
+                });
+                updateNavigationButtons();
+                updateMarkCompleteCheckbox();
+            }
+
+            function updateNavigationButtons() {
+                prevLessonBtnEl.disabled = currentFlatLessonIndex <= 0;
+                nextLessonBtnEl.disabled = currentFlatLessonIndex >= flatLessons.length - 1;
+            }
+            
+            prevLessonBtnEl.addEventListener('click', () => {
+                if (currentFlatLessonIndex > 0) loadLessonByFlatIndex(currentFlatLessonIndex - 1);
+            });
+
+            nextLessonBtnEl.addEventListener('click', () => {
+                if (currentFlatLessonIndex < flatLessons.length - 1) loadLessonByFlatIndex(currentFlatLessonIndex + 1);
+            });
+
+            function updateMarkCompleteCheckbox() {
+                const userCourses = JSON.parse(localStorage.getItem(`userCourses_${loggedInUserEmail}`)) || [];
+                const course = userCourses.find(c => c.name === currentCourseData.name);
+                
+                if (course && course.completedLessons && course.completedLessons[currentFlatLessonIndex]) {
+                    markCompleteCheckboxEl.checked = true;
+                } else {
+                    markCompleteCheckboxEl.checked = false;
+                }
+            }
+
+            markCompleteCheckboxEl.addEventListener('change', () => {
+                let userCourses = JSON.parse(localStorage.getItem(`userCourses_${loggedInUserEmail}`)) || [];
+                let courseForUpdate = userCourses.find(c => c.name === currentCourseData.name);
+
+                if (!courseForUpdate) {
+                    console.error("Course not found in user's enrolled list for progress update");
+                    return;
+                }
+                
+                if (!courseForUpdate.completedLessons) {
+                    courseForUpdate.completedLessons = []; // Initialize if it doesn't exist
+                }
+                // Ensure array is long enough
+                while(courseForUpdate.completedLessons.length <= currentFlatLessonIndex) {
+                    courseForUpdate.completedLessons.push(false);
+                }
+
+                courseForUpdate.completedLessons[currentFlatLessonIndex] = markCompleteCheckboxEl.checked;
+                
+                const completedCount = courseForUpdate.completedLessons.filter(Boolean).length;
+                const totalCourseLessons = flatLessons.length; // Total lessons in the current course
+                
+                courseForUpdate.progress = totalCourseLessons > 0 ? Math.round((completedCount / totalCourseLessons) * 100) : 0;
+
+                localStorage.setItem(`userCourses_${loggedInUserEmail}`, JSON.stringify(userCourses));
+                showCourseMessage(`Lesson ${markCompleteCheckboxEl.checked ? 'marked complete' : 'marked incomplete'}. Progress: ${courseForUpdate.progress}%`, 'success');
+            });
+        });
+
+        document.getElementById('currentYearCourse').textContent = new Date().getFullYear();
+    </script>
+
+</body>
+</html>
