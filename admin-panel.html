@@ -514,7 +514,7 @@
 
             allPending.sort((a,b) => new Date(b.initiatedAt) - new Date(a.initiatedAt)); 
 
-            allPending.forEach(pendingItem => { // Changed variable name from pending to pendingItem
+            allPending.forEach(pendingItem => {
                 const row = pendingPaymentsTableBodyEl.insertRow();
                 row.insertCell().textContent = pendingItem.userEmail;
                 row.insertCell().textContent = pendingItem.courseName;
@@ -532,14 +532,29 @@
                 approveBtn.textContent = 'Approve & Enroll';
                 approveBtn.className = 'bg-green-500 hover:bg-green-600 text-white text-xs py-1 px-2 rounded';
                 
-                // Correctly capture the specific pendingItem for this button's event listener
-                approveBtn.addEventListener('click', () => { // Use arrow function to maintain 'this' or pass directly
-                    console.log("Approve button clicked for (inside listener):", pendingItem);
-                    if (pendingItem.userEmail && pendingItem.courseData) {
-                        approveAndEnrollUser(pendingItem.userEmail, pendingItem.courseData);
+                // Store data directly on the button for the event listener
+                approveBtn.dataset.userEmail = pendingItem.userEmail;
+                // IMPORTANT FIX: Ensure courseData is stringified when set and parsed when read
+                // The pendingItem.courseData should already be an object here.
+                approveBtn.dataset.courseDataString = JSON.stringify(pendingItem.courseData); 
+                
+                approveBtn.addEventListener('click', function() { // Use regular function for 'this'
+                    const userEmail = this.dataset.userEmail;
+                    let courseToEnroll = null;
+                    try {
+                        courseToEnroll = JSON.parse(this.dataset.courseDataString);
+                    } catch (e) {
+                        console.error("Error parsing courseDataString from button dataset:", e, this.dataset.courseDataString);
+                        showAdminPanelMessage("Critical Error: Could not parse course data for approval.", "error");
+                        return;
+                    }
+
+                    console.log("Approve button clicked for (retrieved from dataset):", {userEmail, courseToEnroll});
+                    if (userEmail && courseToEnroll && courseToEnroll.name) { // Check courseToEnroll.name
+                        approveAndEnrollUser(userEmail, courseToEnroll);
                     } else {
-                        showAdminPanelMessage("Error: Could not retrieve necessary data for approval from this row (inside listener).", "error");
-                        console.error("Missing data for approval from pendingItem object (inside listener):", pendingItem);
+                        showAdminPanelMessage("Error: Could not retrieve necessary data for approval from this row.", "error");
+                        console.error("Missing data for approval from button dataset:", {userEmail, courseToEnroll});
                     }
                 });
                 actionCell.appendChild(approveBtn);
@@ -571,7 +586,6 @@
 
             const pendingKey = PENDING_MANUAL_PAYMENTS_STORAGE_KEY_PREFIX + userEmail;
             let userPendingPayments = JSON.parse(localStorage.getItem(pendingKey)) || [];
-            // Filter out the specific approved payment
             userPendingPayments = userPendingPayments.filter(p => 
                 !(p.courseName === courseToEnroll.name && p.status === 'awaiting_confirmation')
             );
