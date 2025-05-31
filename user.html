@@ -12,7 +12,7 @@
         }
         .message-box {
             position: fixed; top: 20px; right: 20px; padding: 1rem; border-radius: 0.5rem;
-            color: white; z-index: 1050; display: none; max-width: 350px; 
+            color: white; z-index: 1050; display: none; max-width: 400px; /* Increased max-width for longer messages */
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         .message-box.success { background-color: #28a745; }
@@ -26,13 +26,26 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
-        .pending-payment-info {
+        .payment-instruction-info {
             background-color: #fffbeb; /* Tailwind yellow-50 */
             border: 1px solid #facc15; /* Tailwind yellow-400 */
-            padding: 0.75rem;
+            padding: 1rem; /* Increased padding */
             border-radius: 0.375rem;
-            margin-top: 0.5rem;
+            margin-top: 0.75rem; /* Increased margin */
             font-size: 0.875rem;
+            line-height: 1.5; /* Improved readability */
+        }
+        .payment-instruction-info strong {
+            font-weight: 600;
+            color: #ca8a04; /* Tailwind yellow-600 */
+        }
+        .payment-instruction-info .bank-account-number {
+            font-family: monospace;
+            background-color: #f3f4f6; /* Tailwind gray-100 */
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            color: #1f2937; /* Tailwind gray-800 */
+            font-weight: bold;
         }
     </style>
 </head>
@@ -87,8 +100,7 @@
     </footer>
 
     <script>
-        const PENDING_PAYMENTS_STORAGE_KEY = 'mrcLang_pendingPayments_'; // Append user email
-        const SHARED_PAYMENTS_STORAGE_KEY = 'mrcShared_completedPayments'; // Key used by MRC Bank
+        const PENDING_MANUAL_PAYMENTS_STORAGE_KEY_PREFIX = 'mrcLang_pendingManualPayments_'; 
 
         document.addEventListener('DOMContentLoaded', () => {
             const welcomeMessageEl = document.getElementById('welcomeMessage');
@@ -99,7 +111,7 @@
             const myProgressListDivEl = document.getElementById('my-progress-list');
             const availableLanguagesListDivEl = document.getElementById('available-languages-list');
 
-            function showUserMessage(message, type = "success", duration = 5000) { // Increased duration
+            function showUserMessage(message, type = "success", duration = 7000) { // Increased duration for instructions
                 if (!messageBoxUserEl) return;
                 messageBoxUserEl.textContent = message;
                 messageBoxUserEl.className = `message-box ${type}`;
@@ -116,7 +128,6 @@
                 if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome, ${mrcLangLoggedInUserFullName}!`;
                 if (userGreetingNavEl) userGreetingNavEl.textContent = `Hi, ${mrcLangLoggedInUserFullName.split(' ')[0]}`;
                 
-                checkForCompletedPayments(); // Check on page load
                 renderAvailableCourses();
                 renderUserEnrolledCoursesAndProgress();
             } else {
@@ -129,16 +140,19 @@
                  logoutButtonUserEl.addEventListener('click', () => {
                     sessionStorage.removeItem('loggedInUserEmail');
                     sessionStorage.removeItem('loggedInUserFullName');
+                    // Clear pending manual payments for this user on logout
+                    localStorage.removeItem(getPendingManualPaymentsKey()); 
                     showUserMessage("You have been logged out from MRC Languages.", "success");
                     setTimeout(() => { window.location.href = 'index.html'; }, 1500);
                 });
             }
 
-            function getPendingPaymentsKey() {
-                return PENDING_PAYMENTS_STORAGE_KEY + mrcLangLoggedInUserEmail;
+            function getPendingManualPaymentsKey() {
+                return PENDING_MANUAL_PAYMENTS_STORAGE_KEY_PREFIX + mrcLangLoggedInUserEmail;
             }
 
             function renderAvailableCourses() {
+                console.log("renderAvailableCourses called");
                 if (!availableLanguagesListDivEl) return;
                 const adminAddedCourses = JSON.parse(localStorage.getItem('mrcLang_adminCourses')) || [];
                 availableLanguagesListDivEl.innerHTML = ''; 
@@ -147,27 +161,28 @@
                     return;
                 }
                 const enrolledLangCourses = getUserEnrolledLangCourses();
-                const pendingPayments = JSON.parse(localStorage.getItem(getPendingPaymentsKey())) || [];
+                const pendingManualPayments = JSON.parse(localStorage.getItem(getPendingManualPaymentsKey())) || [];
+                console.log("Pending manual payments for this user:", pendingManualPayments);
 
 
                 adminAddedCourses.forEach(course => {
                     const isEnrolled = enrolledLangCourses.some(c => c.name === course.name);
-                    const pendingPayment = pendingPayments.find(p => p.courseName === course.name && p.status === 'pending');
+                    const pendingPayment = pendingManualPayments.find(p => p.courseName === course.name && p.status === 'awaiting_confirmation');
 
                     const card = document.createElement('div');
                     const bgColor = course.bgColor || 'bg-gray-100';
                     const iconColor = course.iconColor || 'text-gray-700';
                     const priceText = course.isPaid ? `${parseFloat(course.price).toFixed(2)} MRC` : 'Free';
-                    card.className = `language-enroll-card p-6 rounded-lg shadow-md ${bgColor}`; // Removed cursor-pointer for complex state
+                    card.className = `language-enroll-card p-6 rounded-lg shadow-md ${bgColor}`;
                     
                     let buttonAreaHTML = '';
-                    let pendingInfoHTML = '';
+                    let paymentInfoHTML = '';
 
                     if (isEnrolled) {
                         buttonAreaHTML = `<button class="mt-3 w-full bg-gray-400 text-white px-4 py-2 rounded-md cursor-not-allowed" disabled>Enrolled</button>`;
                     } else if (pendingPayment) {
-                        buttonAreaHTML = `<button class="check-payment-btn mt-3 w-full bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition duration-200" data-payment-id='${pendingPayment.paymentId}'>Check Payment Status</button>`;
-                        pendingInfoHTML = `<div class="pending-payment-info">Awaiting payment. ID: <strong class="font-mono">${pendingPayment.paymentId}</strong>. Please complete payment on MRC Bank and click above.</div>`;
+                        buttonAreaHTML = `<button class="mt-3 w-full bg-yellow-500 text-white px-4 py-2 rounded-md cursor-not-allowed" disabled>Awaiting Confirmation</button>`;
+                        paymentInfoHTML = `<div class="payment-instruction-info">Payment initiated. We will review your payment to account <strong class="bank-account-number">5021-9576-6370-2351</strong> and activate the course within 24 hours. Reason used: <strong>${pendingPayment.paymentReason}</strong></div>`;
                     } else {
                         buttonAreaHTML = `<button class="enroll-btn mt-3 w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200">Enroll</button>`;
                     }
@@ -179,15 +194,10 @@
                         <h3 class="text-xl font-semibold text-center ${iconColor}">${course.name}</h3>
                         <p class="text-center text-sm font-medium mt-1 ${course.isPaid ? 'text-green-600' : 'text-blue-600'}">${priceText}</p>
                         ${buttonAreaHTML}
-                        ${pendingInfoHTML}
+                        ${paymentInfoHTML}
                     `;
                     if (!isEnrolled && !pendingPayment) {
                         card.querySelector('.enroll-btn').addEventListener('click', () => handleInitialEnrollmentAttempt(course));
-                    } else if (pendingPayment) {
-                        card.querySelector('.check-payment-btn').addEventListener('click', (e) => {
-                            const paymentId = e.target.dataset.paymentId;
-                            verifyPaymentAndEnroll(paymentId, course);
-                        });
                     }
                     availableLanguagesListDivEl.appendChild(card);
                 });
@@ -202,100 +212,44 @@
                 localStorage.setItem(`mrcLang_userCourses_${mrcLangLoggedInUserEmail}`, JSON.stringify(courses));
             }
 
-            function generatePaymentId(courseName) {
-                const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
-                const timestamp = Date.now().toString().slice(-6);
-                return `MRCL-${courseName.substring(0,4).toUpperCase()}-${timestamp}-${randomPart}`;
-            }
-
             function handleInitialEnrollmentAttempt(courseToEnroll) {
                 if (courseToEnroll.isPaid) {
-                    const paymentId = generatePaymentId(courseToEnroll.name);
-                    let pendingPayments = JSON.parse(localStorage.getItem(getPendingPaymentsKey())) || [];
+                    const paymentReason = `${courseToEnroll.name} course - ${mrcLangLoggedInUserFullName} (${mrcLangLoggedInUserEmail})`;
+                    const bankAccountNumber = "5021-9576-6370-2351";
+
+                    let pendingManualPayments = JSON.parse(localStorage.getItem(getPendingManualPaymentsKey())) || [];
                     
-                    // Check if already pending for this course
-                    if (pendingPayments.some(p => p.courseName === courseToEnroll.name && p.status === 'pending')) {
-                        showUserMessage("Payment for this course is already pending. Please complete it on MRC Bank or check status.", "info");
-                        renderAvailableCourses(); // Re-render to show 'Check Payment' button
+                    if (pendingManualPayments.some(p => p.courseName === courseToEnroll.name && p.status === 'awaiting_confirmation')) {
+                        showUserMessage("You have already initiated payment for this course. Please await confirmation.", "info");
                         return;
                     }
 
-                    pendingPayments.push({
-                        paymentId: paymentId,
+                    pendingManualPayments.push({
                         courseName: courseToEnroll.name,
-                        coursePrice: courseToEnroll.price,
-                        courseData: courseToEnroll, // Store the full course object
-                        status: 'pending',
+                        coursePrice: parseFloat(courseToEnroll.price),
+                        paymentReason: paymentReason, // Store the reason for display
+                        status: 'awaiting_confirmation',
                         initiatedAt: new Date().toISOString()
                     });
-                    localStorage.setItem(getPendingPaymentsKey(), JSON.stringify(pendingPayments));
+                    localStorage.setItem(getPendingManualPaymentsKey(), JSON.stringify(pendingManualPayments));
 
-                    showUserMessage(`To enroll in ${courseToEnroll.name} (${courseToEnroll.price.toFixed(2)} MRC), go to MRC Bank's "Pay for MRC Service", use Payment ID: ${paymentId}, and enter the amount. Then, return here and click "Check Payment Status".`, "info", 15000); // Longer message display
-                    renderAvailableCourses(); // Re-render to show 'Check Payment' button
+                    const instructionMessage = `To enroll in ${courseToEnroll.name} (${parseFloat(courseToEnroll.price).toFixed(2)} MRC):\n
+1. Go to your MRC Bank account.\n
+2. Send ${parseFloat(courseToEnroll.price).toFixed(2)} MRC to MRC Bank account number: ${bankAccountNumber}.\n
+3. IMPORTANT: In the payment reason/description, please write EXACTLY: "${paymentReason}".\n
+After payment, we will verify and activate your course within 24 hours. This card will show "Awaiting Confirmation".`;
+                    
+                    showUserMessage(instructionMessage, "info", 20000); // Show for 20 seconds
+                    renderAvailableCourses(); // Re-render to show 'Awaiting Confirmation' button
                 } else {
                     enrollInLangCourse(courseToEnroll); 
                 }
             }
             
-            function verifyPaymentAndEnroll(paymentIdToVerify, courseObject) {
-                console.log("Verifying payment for ID:", paymentIdToVerify);
-                const completedBankPayments = JSON.parse(localStorage.getItem(SHARED_PAYMENTS_STORAGE_KEY)) || [];
-                const paymentRecord = completedBankPayments.find(p => p.paymentId === paymentIdToVerify && p.status === 'completed');
+            // The verifyPaymentAndEnroll and checkForCompletedPayments functions are removed
+            // as the verification is now manual by the admin.
 
-                if (paymentRecord) {
-                    console.log("Payment record found in shared log:", paymentRecord);
-                    // Ensure the amount paid matches the course price
-                    if (parseFloat(paymentRecord.amountPaid) !== parseFloat(courseObject.price)) {
-                        showUserMessage(`Payment amount mismatch. Expected ${courseObject.price.toFixed(2)} MRC, but payment record shows ${parseFloat(paymentRecord.amountPaid).toFixed(2)} MRC. Please contact support.`, "error");
-                        return;
-                    }
-
-                    enrollInLangCourse(courseObject); // Enroll the user
-
-                    // Update pending payment status
-                    let pendingPayments = JSON.parse(localStorage.getItem(getPendingPaymentsKey())) || [];
-                    const paymentIndex = pendingPayments.findIndex(p => p.paymentId === paymentIdToVerify);
-                    if (paymentIndex !== -1) {
-                        pendingPayments[paymentIndex].status = 'completed';
-                        // Optionally, remove completed payment from pending list or keep for history
-                        // pendingPayments.splice(paymentIndex, 1); 
-                        localStorage.setItem(getPendingPaymentsKey(), JSON.stringify(pendingPayments));
-                    }
-                    showUserMessage(`Payment verified for ${courseObject.name}! You are now enrolled.`, "success");
-                    renderAvailableCourses(); // Re-render to update buttons
-                } else {
-                    console.log("Payment record NOT found for ID:", paymentIdToVerify);
-                    showUserMessage("Payment confirmation not found. Please ensure you completed the payment on MRC Bank for the correct ID and amount, then try checking again.", "error");
-                }
-            }
-            
-            // This function is called on page load to check for any payments that might have been made
-            // while the user was on the MRC Bank site and then navigated back.
-            function checkForCompletedPayments() {
-                let pendingPayments = JSON.parse(localStorage.getItem(getPendingPaymentsKey())) || [];
-                const completedBankPayments = JSON.parse(localStorage.getItem(SHARED_PAYMENTS_STORAGE_KEY)) || [];
-                let changed = false;
-
-                pendingPayments.forEach((pending, index) => {
-                    if (pending.status === 'pending') {
-                        const paymentRecord = completedBankPayments.find(p => p.paymentId === pending.paymentId && p.status === 'completed');
-                        if (paymentRecord && parseFloat(paymentRecord.amountPaid) === parseFloat(pending.coursePrice)) {
-                            console.log("Auto-verified payment for course:", pending.courseName);
-                            enrollInLangCourse(pending.courseData); // Use stored courseData
-                            pendingPayments[index].status = 'completed'; 
-                            changed = true;
-                        }
-                    }
-                });
-
-                if (changed) {
-                    localStorage.setItem(getPendingPaymentsKey(), JSON.stringify(pendingPayments));
-                    // No need to show message here as enrollInLangCourse and render will update UI
-                }
-            }
-
-
-            function enrollInLangCourse(course) {
+            function enrollInLangCourse(course) { // This function is now primarily for free courses or called by admin
                 let enrolledCourses = getUserEnrolledLangCourses();
                 if (!enrolledCourses.some(c => c.name === course.name)) {
                     let totalLessons = 0;
@@ -309,15 +263,17 @@
                         totalLessons: totalLessons, completedLessons: [] 
                     });
                     saveUserEnrolledLangCourses(enrolledCourses);
-                    // showUserMessage(`Successfully enrolled in ${course.name}!`, "success"); // Message handled by verify or initial attempt
+                    showUserMessage(`Successfully enrolled in ${course.name}!`, "success");
                     renderUserEnrolledCoursesAndProgress();
-                    // renderAvailableCourses will be called by verifyPayment or initial check.
+                    renderAvailableCourses(); 
                 } else {
-                    // showUserMessage(`You are already enrolled in ${course.name}.`, "info");
+                    // This might be called if admin enrolls an already "pending" user
+                    // Or if a free course was somehow re-attempted
+                    console.log(`User already enrolled in ${course.name} or enrollment processed.`);
                 }
             }
 
-            function renderUserEnrolledCoursesAndProgress() { /* ... (same as before) ... */
+            function renderUserEnrolledCoursesAndProgress() {
                 if (!myCoursesListDivEl || !myProgressListDivEl) return;
                 const enrolledCourses = getUserEnrolledLangCourses();
                 if (enrolledCourses.length === 0) {
