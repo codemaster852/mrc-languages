@@ -54,7 +54,8 @@
                 <h2 class="text-2xl font-semibold text-gray-800 mb-4">Manage Courses</h2>
                 <div class="bg-white p-6 rounded-lg shadow-md">
                     <button id="addCourseBtn" class="mb-6 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md">Add New Course</button>
-                    <div id="courseListAdmin" class="space-y-6"> </div>
+                    <div id="courseListAdmin" class="space-y-6"> 
+                        </div>
                 </div>
             </div>
 
@@ -217,7 +218,7 @@
             if (event.target.classList.contains('modal')) {
                  ['courseModal', 'addUnitModal', 'addLessonModal'].forEach(id => {
                     const modal = document.getElementById(id);
-                    if (modal && modal.style.display === 'flex' && event.target.id === id) { // Check if it's the backdrop itself
+                    if (modal && modal.style.display === 'flex' && event.target.id === id) { 
                         closeModal(id);
                     }
                 });
@@ -232,16 +233,16 @@
         const isPaidCourseCheckbox = document.getElementById('isPaidCourse');
         const priceInputContainer = document.getElementById('priceInputContainer');
         
-        const addUnitModalEl = document.getElementById('addUnitModal'); // Renamed for clarity
-        const addUnitFormEl = document.getElementById('addUnitForm'); // Renamed for clarity
-        const unitModalCourseNameEl = document.getElementById('unitModalCourseName'); // Renamed for clarity
-        const unitCourseIndexInputEl = document.getElementById('unitCourseIndex'); // Renamed for clarity
+        const addUnitModalEl = document.getElementById('addUnitModal'); 
+        const addUnitFormEl = document.getElementById('addUnitForm'); 
+        const unitModalCourseNameEl = document.getElementById('unitModalCourseName'); 
+        const unitCourseIndexInputEl = document.getElementById('unitCourseIndex'); 
         
-        const addLessonModalEl = document.getElementById('addLessonModal'); // Renamed for clarity
-        const addLessonFormEl = document.getElementById('addLessonForm'); // Renamed for clarity
-        const lessonModalUnitNameEl = document.getElementById('lessonModalUnitName'); // Renamed for clarity
-        const lessonCourseIndexInputEl = document.getElementById('lessonCourseIndex'); // Renamed for clarity
-        const lessonUnitIndexInputEl = document.getElementById('lessonUnitIndex'); // Renamed for clarity
+        const addLessonModalEl = document.getElementById('addLessonModal'); 
+        const addLessonFormEl = document.getElementById('addLessonForm'); 
+        const lessonModalUnitNameEl = document.getElementById('lessonModalUnitName'); 
+        const lessonCourseIndexInputEl = document.getElementById('lessonCourseIndex'); 
+        const lessonUnitIndexInputEl = document.getElementById('lessonUnitIndex'); 
 
 
         let mrcLang_adminCourses = JSON.parse(localStorage.getItem('mrcLang_adminCourses')) || [];
@@ -275,21 +276,23 @@
                 const price = isPaid ? parseFloat(document.getElementById('coursePrice').value) : 0;
                 const editingIndex = parseInt(editingCourseIndexInput.value);
 
-                if (isPaid && (isNaN(price) || price < 0)) { // Allow 0 for paid but free
+                if (isPaid && (isNaN(price) || price < 0)) { 
                     showAdminPanelMessage("Please enter a valid non-negative price for a paid course.", "error");
                     return;
                 }
 
                 const courseData = { 
                     name, code, iconColor, bgColor, isPaid, 
-                    price: isPaid ? price : null, 
-                    units: editingIndex > -1 ? mrcLang_adminCourses[editingIndex].units : [] 
+                    price: isPaid ? price : null
                 };
 
                 if (editingIndex > -1) { 
-                    mrcLang_adminCourses[editingIndex] = {...mrcLang_adminCourses[editingIndex], ...courseData}; // Merge to keep units if editing
+                    // Preserve existing units and lessons when editing course-level details
+                    courseData.units = mrcLang_adminCourses[editingIndex].units || []; 
+                    mrcLang_adminCourses[editingIndex] = courseData;
                     showAdminPanelMessage(`Course "${name}" updated successfully.`, "success");
                 } else { 
+                    courseData.units = []; // Initialize units for new course
                     mrcLang_adminCourses.push(courseData);
                     showAdminPanelMessage(`Course "${name}" added successfully.`, "success");
                 }
@@ -329,12 +332,11 @@
             }
         }
         
-        // Event listeners for Add Unit and Add Lesson forms (ensure IDs match your modals)
         if (addUnitFormEl) {
             addUnitFormEl.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const courseIndex = parseInt(unitCourseIndexInputEl.value);
-                const unitTitle = document.getElementById('unitTitle').value; // Assuming input ID is 'unitTitle'
+                const unitTitle = document.getElementById('unitTitle').value; 
                 if (mrcLang_adminCourses[courseIndex]) {
                     if (!mrcLang_adminCourses[courseIndex].units) mrcLang_adminCourses[courseIndex].units = [];
                     mrcLang_adminCourses[courseIndex].units.push({ unitTitle: unitTitle, lessons: [] });
@@ -355,13 +357,16 @@
                 const lessonContent = document.getElementById('lessonContentAdmin').value;
                 const lessonImageUrl = document.getElementById('lessonImageUrl').value;
 
-                if (mrcLang_adminCourses[courseIndex] && mrcLang_adminCourses[courseIndex].units[unitIndex]) {
+                if (mrcLang_adminCourses[courseIndex] && mrcLang_adminCourses[courseIndex].units && mrcLang_adminCourses[courseIndex].units[unitIndex]) {
                      if (!mrcLang_adminCourses[courseIndex].units[unitIndex].lessons) mrcLang_adminCourses[courseIndex].units[unitIndex].lessons = [];
                     mrcLang_adminCourses[courseIndex].units[unitIndex].lessons.push({
                         title: lessonTitle, content: lessonContent, imageUrl: lessonImageUrl || null
                     });
                     saveAndRenderAdminCourses();
                     showAdminPanelMessage(`Lesson "${lessonTitle}" added.`, "success");
+                } else {
+                    showAdminPanelMessage("Error: Could not find the specified course or unit to add the lesson.", "error");
+                    console.error("Error adding lesson: Course or Unit not found at indices", courseIndex, unitIndex);
                 }
                 closeModal('addLessonModal');
                 addLessonFormEl.reset();
@@ -425,7 +430,6 @@
                 courseListAdminEl.appendChild(courseDiv);
             });
 
-            // Re-attach event listeners for dynamic buttons
             document.querySelectorAll('.edit-course-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => openEditCourseModal(parseInt(e.target.dataset.courseIndex)));
             });
@@ -445,12 +449,15 @@
                 btn.addEventListener('click', (e) => {
                     const courseIndex = e.target.dataset.courseIndex;
                     const unitIndex = e.target.dataset.unitIndex;
-                    if (mrcLang_adminCourses[courseIndex] && mrcLang_adminCourses[courseIndex].units[unitIndex]) {
+                    if (mrcLang_adminCourses[courseIndex] && mrcLang_adminCourses[courseIndex].units && mrcLang_adminCourses[courseIndex].units[unitIndex]) {
                         const unitName = mrcLang_adminCourses[courseIndex].units[unitIndex].unitTitle;
                         if(lessonModalUnitNameEl) lessonModalUnitNameEl.textContent = `${mrcLang_adminCourses[courseIndex].name} - ${unitName}`;
                         if(lessonCourseIndexInputEl) lessonCourseIndexInputEl.value = courseIndex; 
                         if(lessonUnitIndexInputEl) lessonUnitIndexInputEl.value = unitIndex;
                         openModal('addLessonModal');
+                    } else {
+                         console.error("Could not open Add Lesson modal: Course or Unit not found at indices", courseIndex, unitIndex);
+                         showAdminPanelMessage("Error: Could not find course/unit to add lesson to.", "error");
                     }
                 });
             });
@@ -458,7 +465,7 @@
 
         const langUserCountEl = document.getElementById('langUserCount');
         const langUserListEl = document.getElementById('langUserList');
-        function loadLanguageUsers() { /* ... same as before ... */ 
+        function loadLanguageUsers() { 
             const langUsers = JSON.parse(localStorage.getItem('mrcUsers')) || [];
             if (langUserCountEl) langUserCountEl.textContent = langUsers.length;
             if (langUserListEl) {
@@ -489,12 +496,12 @@
 
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
-                if (key && key.startsWith(PENDING_MANUAL_PAYMENTS_STORAGE_KEY_PREFIX)) { // Added null check for key
+                if (key && key.startsWith(PENDING_MANUAL_PAYMENTS_STORAGE_KEY_PREFIX)) { 
                     const userEmail = key.substring(PENDING_MANUAL_PAYMENTS_STORAGE_KEY_PREFIX.length);
                     const userPendingPayments = JSON.parse(localStorage.getItem(key)) || [];
                     userPendingPayments.forEach(p => {
                         if (p.status === 'awaiting_confirmation') { 
-                            allPending.push({ ...p, userEmail });
+                            allPending.push({ ...p, userEmail }); 
                         }
                     });
                 }
@@ -524,27 +531,24 @@
                 const approveBtn = document.createElement('button');
                 approveBtn.textContent = 'Approve & Enroll';
                 approveBtn.className = 'bg-green-500 hover:bg-green-600 text-white text-xs py-1 px-2 rounded';
-                // Store data directly on the button for the event listener
-                approveBtn.dataset.userEmail = pending.userEmail;
-                approveBtn.dataset.courseData = JSON.stringify(pending.courseData); // Store full course object
                 
-                approveBtn.addEventListener('click', function() {
-                    const userEmail = this.dataset.userEmail;
-                    const courseToEnroll = JSON.parse(this.dataset.courseData);
-                    if (userEmail && courseToEnroll) {
-                        approveAndEnrollUser(userEmail, courseToEnroll);
+                // FIX: Use an anonymous function in the event listener to correctly capture the 'pending' object for this specific row.
+                approveBtn.addEventListener('click', () => {
+                    console.log("Approve button clicked for:", pending);
+                    if (pending.userEmail && pending.courseData) {
+                        approveAndEnrollUser(pending.userEmail, pending.courseData);
                     } else {
-                        showAdminPanelMessage("Error: Could not retrieve necessary data for approval.", "error");
-                        console.error("Missing data for approval:", {userEmail, courseToEnroll});
+                        showAdminPanelMessage("Error: Could not retrieve necessary data for approval from this row.", "error");
+                        console.error("Missing data for approval from pending object:", pending);
                     }
                 });
                 actionCell.appendChild(approveBtn);
             });
         }
 
-        function approveAndEnrollUser(userEmail, courseToEnroll) { // Removed paymentReason as it's not used for enrollment logic
+        function approveAndEnrollUser(userEmail, courseToEnroll) { 
             console.log("Admin approving for:", userEmail, "Course:", courseToEnroll);
-            if (!userEmail || !courseToEnroll || !courseToEnroll.name) { // Added check for courseToEnroll.name
+            if (!userEmail || !courseToEnroll || !courseToEnroll.name) { 
                 showAdminPanelMessage("Error: Missing user or valid course data for approval.", "error");
                 console.error("approveAndEnrollUser called with invalid data:", {userEmail, courseToEnroll});
                 return;
