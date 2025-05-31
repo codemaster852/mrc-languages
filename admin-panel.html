@@ -287,12 +287,11 @@
                 };
 
                 if (editingIndex > -1) { 
-                    // Preserve existing units and lessons when editing course-level details
                     courseData.units = mrcLang_adminCourses[editingIndex].units || []; 
                     mrcLang_adminCourses[editingIndex] = courseData;
                     showAdminPanelMessage(`Course "${name}" updated successfully.`, "success");
                 } else { 
-                    courseData.units = []; // Initialize units for new course
+                    courseData.units = []; 
                     mrcLang_adminCourses.push(courseData);
                     showAdminPanelMessage(`Course "${name}" added successfully.`, "success");
                 }
@@ -430,6 +429,7 @@
                 courseListAdminEl.appendChild(courseDiv);
             });
 
+            // Re-attach event listeners for dynamic buttons
             document.querySelectorAll('.edit-course-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => openEditCourseModal(parseInt(e.target.dataset.courseIndex)));
             });
@@ -514,32 +514,32 @@
 
             allPending.sort((a,b) => new Date(b.initiatedAt) - new Date(a.initiatedAt)); 
 
-            allPending.forEach(pending => {
+            allPending.forEach(pendingItem => { // Changed variable name from pending to pendingItem
                 const row = pendingPaymentsTableBodyEl.insertRow();
-                row.insertCell().textContent = pending.userEmail;
-                row.insertCell().textContent = pending.courseName;
-                row.insertCell().textContent = parseFloat(pending.coursePrice).toFixed(2);
+                row.insertCell().textContent = pendingItem.userEmail;
+                row.insertCell().textContent = pendingItem.courseName;
+                row.insertCell().textContent = parseFloat(pendingItem.coursePrice).toFixed(2);
                 
                 const reasonCell = row.insertCell();
                 reasonCell.className = 'px-6 py-3 text-xs text-gray-600 max-w-sm truncate';
-                reasonCell.textContent = pending.paymentReason;
-                reasonCell.title = pending.paymentReason; 
+                reasonCell.textContent = pendingItem.paymentReason;
+                reasonCell.title = pendingItem.paymentReason; 
 
-                row.insertCell().textContent = new Date(pending.initiatedAt).toLocaleDateString();
+                row.insertCell().textContent = new Date(pendingItem.initiatedAt).toLocaleDateString();
                 
                 const actionCell = row.insertCell();
                 const approveBtn = document.createElement('button');
                 approveBtn.textContent = 'Approve & Enroll';
                 approveBtn.className = 'bg-green-500 hover:bg-green-600 text-white text-xs py-1 px-2 rounded';
                 
-                // FIX: Use an anonymous function in the event listener to correctly capture the 'pending' object for this specific row.
-                approveBtn.addEventListener('click', () => {
-                    console.log("Approve button clicked for:", pending);
-                    if (pending.userEmail && pending.courseData) {
-                        approveAndEnrollUser(pending.userEmail, pending.courseData);
+                // Correctly capture the specific pendingItem for this button's event listener
+                approveBtn.addEventListener('click', () => { // Use arrow function to maintain 'this' or pass directly
+                    console.log("Approve button clicked for (inside listener):", pendingItem);
+                    if (pendingItem.userEmail && pendingItem.courseData) {
+                        approveAndEnrollUser(pendingItem.userEmail, pendingItem.courseData);
                     } else {
-                        showAdminPanelMessage("Error: Could not retrieve necessary data for approval from this row.", "error");
-                        console.error("Missing data for approval from pending object:", pending);
+                        showAdminPanelMessage("Error: Could not retrieve necessary data for approval from this row (inside listener).", "error");
+                        console.error("Missing data for approval from pendingItem object (inside listener):", pendingItem);
                     }
                 });
                 actionCell.appendChild(approveBtn);
@@ -571,7 +571,10 @@
 
             const pendingKey = PENDING_MANUAL_PAYMENTS_STORAGE_KEY_PREFIX + userEmail;
             let userPendingPayments = JSON.parse(localStorage.getItem(pendingKey)) || [];
-            userPendingPayments = userPendingPayments.filter(p => !(p.courseName === courseToEnroll.name && p.status === 'awaiting_confirmation'));
+            // Filter out the specific approved payment
+            userPendingPayments = userPendingPayments.filter(p => 
+                !(p.courseName === courseToEnroll.name && p.status === 'awaiting_confirmation')
+            );
             
             if (userPendingPayments.length === 0) {
                 localStorage.removeItem(pendingKey);
