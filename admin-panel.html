@@ -530,31 +530,27 @@
                 const actionCell = row.insertCell();
                 const approveBtn = document.createElement('button');
                 approveBtn.textContent = 'Approve & Enroll';
-                approveBtn.className = 'bg-green-500 hover:bg-green-600 text-white text-xs py-1 px-2 rounded';
+                approveBtn.className = 'bg-green-500 hover:bg-green-600 text-white text-xs py-1 px-2 rounded approve-enroll-btn'; // Added a class for easier selection if needed
                 
-                // Store data directly on the button for the event listener
+                // Store identifiers directly, and we'll retrieve the full courseData object from mrcLang_adminCourses
                 approveBtn.dataset.userEmail = pendingItem.userEmail;
-                // IMPORTANT FIX: Ensure courseData is stringified when set and parsed when read
-                // The pendingItem.courseData should already be an object here.
-                approveBtn.dataset.courseDataString = JSON.stringify(pendingItem.courseData); 
+                approveBtn.dataset.courseName = pendingItem.courseName; // Storing courseName to find it later
                 
-                approveBtn.addEventListener('click', function() { // Use regular function for 'this'
+                approveBtn.addEventListener('click', function() { 
                     const userEmail = this.dataset.userEmail;
-                    let courseToEnroll = null;
-                    try {
-                        courseToEnroll = JSON.parse(this.dataset.courseDataString);
-                    } catch (e) {
-                        console.error("Error parsing courseDataString from button dataset:", e, this.dataset.courseDataString);
-                        showAdminPanelMessage("Critical Error: Could not parse course data for approval.", "error");
-                        return;
-                    }
+                    const courseName = this.dataset.courseName;
 
-                    console.log("Approve button clicked for (retrieved from dataset):", {userEmail, courseToEnroll});
-                    if (userEmail && courseToEnroll && courseToEnroll.name) { // Check courseToEnroll.name
+                    console.log("[Admin Panel] Approve Click - User Email:", userEmail, "Course Name:", courseName);
+
+                    // Find the full course object from the admin's list of courses
+                    // This is more reliable than stringifying/parsing complex objects in dataset
+                    const courseToEnroll = mrcLang_adminCourses.find(c => c.name === courseName);
+
+                    if (userEmail && courseToEnroll) { 
                         approveAndEnrollUser(userEmail, courseToEnroll);
                     } else {
-                        showAdminPanelMessage("Error: Could not retrieve necessary data for approval from this row.", "error");
-                        console.error("Missing data for approval from button dataset:", {userEmail, courseToEnroll});
+                        showAdminPanelMessage("Error: Could not retrieve necessary data for approval. Course might have been deleted or data is inconsistent.", "error");
+                        console.error("Missing data for approval:", {userEmail, courseName, courseToEnroll});
                     }
                 });
                 actionCell.appendChild(approveBtn);
